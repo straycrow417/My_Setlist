@@ -37,7 +37,6 @@
             margin-bottom: calc(6px * var(--tag-scale)); 
             margin-left: calc(10px * var(--tag-scale));  
             
-            /* 使用 border 替代 box-shadow 以增加匯出時的穩定性 */
             border-right: calc(2px * var(--tag-scale)) solid rgba(255, 255, 255, 0.2);
             border-bottom: calc(2px * var(--tag-scale)) solid rgba(255, 255, 255, 0.2);
             
@@ -49,13 +48,10 @@
         .song-tag.tag-white {
             background-color: rgba(255, 255, 255, 0.6); /* 白色背景 60% 透明度 */
             color: black;
-            
-            /* 白色標籤使用深色邊框作為陰影層次 */
             border-right: calc(2px * var(--tag-scale)) solid rgba(0, 0, 0, 0.3);
             border-bottom: calc(2px * var(--tag-scale)) solid rgba(0, 0, 0, 0.3);
         }
 
-        /* 文字對齊：使用 baseline 確保編號與歌名對齊 */
         .song-tag > .tag-inner {
             transform: skewX(5deg);
             display: flex; 
@@ -135,7 +131,6 @@
 <body class="bg-zinc-900 text-zinc-100 h-[100dvh] flex flex-col">
 
     <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
-        
         <div class="flex-1 p-4 flex flex-col items-center bg-zinc-800 relative overflow-y-auto">
             <div id="scale-wrapper" class="w-full flex justify-center items-start pt-4 transition-all duration-300">
                 <div id="capture-zone" class="poster-size text-zinc-100 shadow-2xl">
@@ -191,7 +186,6 @@
                 <button onclick="switchTab('library')" id="tab-library" class="tab-btn pb-2">社群歌庫</button>
             </div>
             
-            <!-- 編輯歌單面板 -->
             <div id="panel-edit" class="flex flex-col flex-1 overflow-hidden">
                 <div class="space-y-2 bg-zinc-800 p-3 rounded-lg mb-4">
                     <input type="text" id="custom-name" placeholder="歌名" class="w-full bg-zinc-700 border-none p-2 rounded text-xs text-white outline-none">
@@ -208,7 +202,6 @@
                 </div>
             </div>
 
-            <!-- 社群歌庫面板 (新增搜尋功能) -->
             <div id="panel-library" class="hidden flex-1 flex flex-col overflow-hidden">
                 <div class="mb-4">
                     <div class="relative">
@@ -225,7 +218,6 @@
     <div id="bulk-modal" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-center justify-center p-4">
         <div class="bg-zinc-800 w-full max-w-md p-6 rounded-2xl shadow-2xl border border-zinc-700">
             <h3 class="text-lg font-bold mb-2">批次匯入</h3>
-            <p class="text-[10px] text-zinc-400 mb-3">格式：歌名, 專輯 (每行一首)</p>
             <textarea id="bulk-input" rows="8" placeholder="例如：&#10;季節は次々死んでいく, 世界収束二一一六&#10;僕が死のうと思ったのは, 虛無病" class="w-full bg-zinc-900 border border-zinc-700 p-3 rounded-lg text-xs text-white resize-none font-mono outline-none"></textarea>
             <div class="flex gap-2 mt-4">
                 <button onclick="toggleBulkModal()" class="flex-1 bg-zinc-700 text-white py-2 rounded font-bold text-xs">取消</button>
@@ -239,7 +231,23 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = JSON.parse(__firebase_config);
+        // === 手動設定區 (當部署到 GitHub Pages 時，請填入你的 Firebase 配置) ===
+        // 請將 Firebase Console 提供的內容複製到下方的引號中
+        const manualConfig = {
+            apiKey: "AIzaSyDhP9JryXni2a6SOka73Lgng80DBwg0esI",
+  authDomain: "my-setlist-25d7a.firebaseapp.com",
+  projectId: "my-setlist-25d7a",
+  storageBucket: "my-setlist-25d7a.firebasestorage.app",
+  messagingSenderId: "723230839513",
+  appId: "1:723230839513:web:307d5221fada859e6f24c8"
+        };
+
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : manualConfig;
+        
+        if (!firebaseConfig.apiKey) {
+            console.warn("Firebase Config 尚未設定，社群歌庫功能將無法運作。");
+        }
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -248,20 +256,26 @@
         let user = null;
         let bgConfig = { scale: 100, x: 50, y: 50 };
         let useWhiteTags = false;
-        let allLibrarySongs = []; // 存儲所有從 Firebase 獲取的歌曲以供搜尋
+        let allLibrarySongs = [];
 
-        onAuthStateChanged(auth, (u) => { user = u; if (user) listenToSongLibrary(); });
+        onAuthStateChanged(auth, (u) => { 
+            user = u; 
+            if (user) listenToSongLibrary(); 
+        });
 
         const initAuth = async () => {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-                await signInAnonymously(auth);
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) {
+                console.warn("驗證失敗:", err.message);
             }
         };
         initAuth();
 
-        // 監聽搜尋輸入
         document.getElementById('library-search').addEventListener('input', (e) => {
             renderLibrary(e.target.value.toLowerCase());
         });
@@ -270,36 +284,21 @@
             const libraryCol = collection(db, 'artifacts', appId, 'public', 'data', 'song_library');
             onSnapshot(libraryCol, (snapshot) => {
                 allLibrarySongs = snapshot.docs.map(doc => doc.data());
-                renderLibrary(); // 初始渲染
-            }, (error) => console.error(error));
+                renderLibrary(); 
+            }, (error) => console.error("無法讀取歌庫:", error));
         }
 
-        // 渲染歌庫 UI，支援過濾
         function renderLibrary(filter = '') {
             const libraryUI = document.getElementById('library-list-ui');
             libraryUI.innerHTML = '';
-            
             const filteredSongs = allLibrarySongs.filter(song => 
                 song.name.toLowerCase().includes(filter) || 
                 (song.album && song.album.toLowerCase().includes(filter))
             );
-
-            if (filteredSongs.length === 0) {
-                libraryUI.innerHTML = '<div class="text-center text-zinc-500 py-10 text-xs">找不到符合的歌曲</div>';
-                return;
-            }
-
             filteredSongs.forEach(song => {
                 const item = document.createElement('div');
                 item.className = 'p-2 bg-zinc-800 rounded border border-zinc-700 hover:border-green-500 cursor-pointer text-xs group transition-all';
-                item.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <div class="font-bold text-white">${song.name}</div>
-                            <div class="text-zinc-500 text-[10px]">${song.album || ''}</div>
-                        </div>
-                        <div class="text-green-500 opacity-0 group-hover:opacity-100 text-[10px] font-bold">+ 加入</div>
-                    </div>`;
+                item.innerHTML = `<div class="flex justify-between items-center"><div><div class="font-bold text-white">${song.name}</div><div class="text-zinc-500 text-[10px]">${song.album || ''}</div></div><div class="text-green-500 opacity-0 group-hover:opacity-100 text-[10px] font-bold">+ 加入</div></div>`;
                 item.onclick = () => { createItemUI(song.name, song.album); syncPoster(); switchTab('edit'); };
                 libraryUI.appendChild(item);
             });
@@ -307,12 +306,9 @@
 
         async function saveSongToLibrary(name, album) {
             if (!user || !name) return;
-            // 簡單去重 ID
             const songId = btoa(encodeURIComponent(name.toLowerCase() + (album ? album.toLowerCase() : ""))).substring(0, 50);
             const songDoc = doc(db, 'artifacts', appId, 'public', 'data', 'song_library', songId);
-            try {
-                await setDoc(songDoc, { name, album: album || '', lastUsed: serverTimestamp() }, { merge: true });
-            } catch (e) { console.error(e); }
+            try { await setDoc(songDoc, { name, album: album || '', lastUsed: serverTimestamp() }, { merge: true }); } catch (e) {}
         }
 
         window.switchTab = (tab) => {
@@ -354,10 +350,7 @@
                 const parts = line.split(/[,;|\t]/);
                 const name = parts[0]?.trim();
                 const album = parts[1]?.trim() || "";
-                if (name) { 
-                    createItemUI(name, album);
-                    await saveSongToLibrary(name, album);
-                }
+                if (name) { createItemUI(name, album); await saveSongToLibrary(name, album); }
             }
             document.getElementById('bulk-input').value = '';
             toggleBulkModal();
@@ -374,19 +367,9 @@
             if (items.length > 12) scale = 0.9;
             if (items.length > 18) scale = 0.75;
             document.documentElement.style.setProperty('--tag-scale', scale);
-            
             items.forEach((item, index) => {
                 const tag = document.createElement('div');
-                tag.innerHTML = `
-                    <div class="song-tag ${useWhiteTags ? 'tag-white' : ''}">
-                        <div class="tag-inner">
-                            <div class="tag-index">${index + 1}.</div>
-                            <div class="tag-content">
-                                <div class="tag-name">${item.dataset.name}</div>
-                                ${item.dataset.album ? `<div class="tag-album">(from ${item.dataset.album})</div>` : ''}
-                            </div>
-                        </div>
-                    </div>`;
+                tag.innerHTML = `<div class="song-tag ${useWhiteTags ? 'tag-white' : ''}"><div class="tag-inner"><div class="tag-index">${index + 1}.</div><div class="tag-content"><div class="tag-name">${item.dataset.name}</div>${item.dataset.album ? `<div class="tag-album">(from ${item.dataset.album})</div>` : ''}</div></div></div>`;
                 posterItems.appendChild(tag);
             });
         };
@@ -417,7 +400,6 @@
         document.getElementById('bg-scale').addEventListener('input', (e) => { bgConfig.scale = e.target.value; updateBg(); });
         document.getElementById('bg-x').addEventListener('input', (e) => { bgConfig.x = e.target.value; updateBg(); });
         document.getElementById('bg-y').addEventListener('input', (e) => { bgConfig.y = e.target.value; updateBg(); });
-        
         document.getElementById('toggle-color').addEventListener('click', () => {
             const z = document.getElementById('capture-zone');
             z.style.color = z.style.color === 'black' ? 'white' : 'black';
@@ -426,26 +408,17 @@
 
         document.getElementById('export-btn').addEventListener('click', async () => {
             const btn = document.getElementById('export-btn');
-            const originalText = btn.innerText;
             btn.innerText = '處理中...';
             const poster = document.getElementById('capture-zone');
             const oldT = poster.style.transform;
             poster.style.transform = 'scale(1)'; 
-            
-            const canvas = await html2canvas(poster, { 
-                scale: 3, 
-                useCORS: true, 
-                width: 592, 
-                height: 400,
-                logging: false
-            });
-            
+            const canvas = await html2canvas(poster, { scale: 3, useCORS: true, width: 592, height: 400 });
             poster.style.transform = oldT;
             const link = document.createElement('a');
             link.download = `My_Setlist.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
-            btn.innerText = originalText;
+            btn.innerText = '⬇ 匯出圖片';
         });
 
         function adjustLayout() {
