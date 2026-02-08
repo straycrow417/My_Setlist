@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>歌單海報產生器 (Amazarashi 風格版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
+        
+        :root {
+            --tag-scale: 1; 
+        }
+
+        body { font-family: 'Noto Sans TC', sans-serif; overflow: hidden; }
+        .ghost { opacity: 0.2; background: #3f3f46 !important; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        .poster-size {
+            width: 592px; 
+            height: 400px; 
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+            background-color: #2d5a3a; 
+        }
+
+        /* 標籤基礎樣式 - 統一 60% 透明度 */
+        .song-tag {
+            background-color: rgba(0, 0, 0, 0.6); /* 黑色背景 60% 透明度 */
+            color: white;
+            padding: calc(6px * var(--tag-scale)) calc(12px * var(--tag-scale)); 
+            display: inline-block;
+            transform: skewX(-5deg);
+            margin-bottom: calc(6px * var(--tag-scale)); 
+            margin-left: calc(10px * var(--tag-scale));  
+            
+            /* 使用 border 替代 box-shadow 以增加匯出時的穩定性 */
+            border-right: calc(2px * var(--tag-scale)) solid rgba(255, 255, 255, 0.2);
+            border-bottom: calc(2px * var(--tag-scale)) solid rgba(255, 255, 255, 0.2);
+            
+            text-align: left;
+            min-width: fit-content;
+            max-width: 90%; 
+        }
+
+        .song-tag.tag-white {
+            background-color: rgba(255, 255, 255, 0.6); /* 白色背景 60% 透明度 */
+            color: black;
+            
+            /* 白色標籤使用深色邊框作為陰影層次 */
+            border-right: calc(2px * var(--tag-scale)) solid rgba(0, 0, 0, 0.3);
+            border-bottom: calc(2px * var(--tag-scale)) solid rgba(0, 0, 0, 0.3);
+        }
+
+        /* 文字對齊：使用 baseline 確保編號與歌名對齊 */
+        .song-tag > .tag-inner {
+            transform: skewX(5deg);
+            display: flex; 
+            align-items: baseline; 
+            gap: calc(8px * var(--tag-scale)); 
+        }
+
+        .tag-index {
+            font-size: calc(13px * var(--tag-scale)); 
+            font-weight: 900;
+            line-height: 1;
+            flex-shrink: 0;
+            min-width: calc(18px * var(--tag-scale)); 
+            text-align: right;
+            font-style: italic;
+        }
+
+        .tag-content {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            flex-shrink: 0;
+        }
+
+        .tag-name {
+            font-size: calc(13px * var(--tag-scale));
+            font-weight: 900;
+            line-height: 1; 
+            letter-spacing: 0.02em;
+            white-space: nowrap; 
+        }
+
+        .tag-album {
+            font-size: calc(9px * var(--tag-scale));
+            font-weight: 400;
+            opacity: 0.8;
+            line-height: 1.2;
+            margin-top: calc(3px * var(--tag-scale));
+            white-space: nowrap;
+        }
+
+        #capture-zone {
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+            transform-origin: top center;
+        }
+
+        .content-layer {
+            position: relative;
+            z-index: 10;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 24px; 
+        }
+
+        .title-main { font-size: 1.8rem; font-weight: 900; line-height: 1.1; }
+        .title-sub { font-size: 1rem; opacity: 0.8; padding-left: 1em; }
+
+        #playlist-items {
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            align-content: flex-end; 
+            justify-content: flex-end; 
+            height: 310px; 
+            width: 100%;
+            overflow: visible;
+        }
+
+        .tab-btn.active { border-bottom: 2px solid #22c55e; color: white; }
+        input[type=range] { accent-color: #22c55e; }
+        .sortable-item { cursor: grab; user-select: none; }
+    </style>
+</head>
+<body class="bg-zinc-900 text-zinc-100 h-[100dvh] flex flex-col">
+
+    <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        
+        <div class="flex-1 p-4 flex flex-col items-center bg-zinc-800 relative overflow-y-auto">
+            <div id="scale-wrapper" class="w-full flex justify-center items-start pt-4 transition-all duration-300">
+                <div id="capture-zone" class="poster-size text-zinc-100 shadow-2xl">
+                    <div class="content-layer">
+                        <div id="title-container" class="mb-3">
+                            <div class="title-main">請在此輸入歌單標題</div>
+                            <div class="title-sub">換行以輸入副標題</div>
+                        </div>
+                        <div id="playlist-items" class="no-scrollbar"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 w-full max-w-2xl bg-zinc-700 p-4 rounded-xl shadow-2xl border border-zinc-600 z-20">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <p class="text-[10px] text-zinc-400 uppercase tracking-widest font-bold">標題內容</p>
+                        <textarea id="nickname-input" rows="2" 
+                            class="w-full bg-zinc-800 border-none p-2 rounded text-xs text-white focus:ring-1 focus:ring-green-500 resize-none font-mono">請在此輸入歌單標題&#10;換行以輸入副標題</textarea>
+                    </div>
+                    <div class="flex flex-col gap-3">
+                        <p class="text-[10px] text-zinc-400 uppercase tracking-widest font-bold">外觀控制</p>
+                        <div class="grid grid-cols-1 gap-2 text-[9px] text-zinc-300">
+                            <div class="flex items-center gap-2">
+                                <span class="w-24 shrink-0">底圖縮放調整</span>
+                                <input type="range" id="bg-scale" min="100" max="300" value="100" class="flex-1 h-1 bg-zinc-600 rounded-lg appearance-none">
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-24 shrink-0">底圖水平調整</span>
+                                <input type="range" id="bg-x" min="0" max="100" value="50" class="flex-1 h-1 bg-zinc-600 rounded-lg appearance-none">
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="w-24 shrink-0">底圖垂直調整</span>
+                                <input type="range" id="bg-y" min="0" max="100" value="50" class="flex-1 h-1 bg-zinc-600 rounded-lg appearance-none">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="toggle-color" class="bg-zinc-600 hover:bg-zinc-500 text-white text-[10px] py-1.5 rounded transition-colors">深色標題/淺色標題</button>
+                            <button id="toggle-tag-color" class="bg-zinc-600 hover:bg-zinc-500 text-white text-[10px] py-1.5 rounded transition-colors">深色歌單/淺色歌單</button>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="flex-1 bg-zinc-600 hover:bg-zinc-500 text-white text-[10px] py-2 rounded cursor-pointer text-center transition-colors">📷 上傳底圖<input type="file" id="bg-upload" accept="image/*" class="hidden"></label>
+                            <button id="export-btn" class="flex-1 bg-white text-black font-black rounded hover:bg-zinc-200 text-[10px] py-2 shadow-md uppercase transition-all">⬇ 匯出圖片</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full lg:w-[360px] h-[50vh] lg:h-auto bg-zinc-900 border-t lg:border-t-0 lg:border-l border-zinc-800 p-4 flex flex-col shadow-2xl z-30">
+            <div class="flex gap-4 border-b border-zinc-800 mb-4 text-xs font-bold text-zinc-500">
+                <button onclick="switchTab('edit')" id="tab-edit" class="tab-btn pb-2 active">編輯歌單</button>
+                <button onclick="switchTab('library')" id="tab-library" class="tab-btn pb-2">社群歌庫</button>
+            </div>
+            
+            <!-- 編輯歌單面板 -->
+            <div id="panel-edit" class="flex flex-col flex-1 overflow-hidden">
+                <div class="space-y-2 bg-zinc-800 p-3 rounded-lg mb-4">
+                    <input type="text" id="custom-name" placeholder="歌名" class="w-full bg-zinc-700 border-none p-2 rounded text-xs text-white outline-none">
+                    <input type="text" id="custom-album" placeholder="專輯 (選填)" class="w-full bg-zinc-700 border-none p-2 rounded text-xs text-white outline-none">
+                    <button id="add-custom-btn" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2 rounded text-xs transition-colors shadow-lg">+ 加入歌單</button>
+                    <button onclick="toggleBulkModal()" class="w-full bg-zinc-600 hover:bg-zinc-500 text-zinc-300 py-1.5 rounded text-[10px] transition-colors">批次匯入文字</button>
+                </div>
+                <div class="flex-1 flex flex-col overflow-hidden">
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-[10px] font-bold uppercase tracking-widest text-zinc-500">目前歌單 (拖曳排序)</h2>
+                        <button id="clear-all-btn" class="text-[10px] text-red-500 hover:text-red-400 font-bold">清空全部</button>
+                    </div>
+                    <div id="playlist-list-ui" class="flex-1 space-y-2 overflow-y-auto no-scrollbar pb-10"></div>
+                </div>
+            </div>
+
+            <!-- 社群歌庫面板 (新增搜尋功能) -->
+            <div id="panel-library" class="hidden flex-1 flex flex-col overflow-hidden">
+                <div class="mb-4">
+                    <div class="relative">
+                        <input type="text" id="library-search" placeholder="搜尋歌庫中的歌曲..." 
+                            class="w-full bg-zinc-800 border border-zinc-700 p-2 pl-8 rounded text-xs text-white outline-none focus:border-green-500 transition-colors">
+                        <span class="absolute left-2.5 top-2.5 text-zinc-500">🔍</span>
+                    </div>
+                </div>
+                <div id="library-list-ui" class="flex-1 space-y-2 overflow-y-auto no-scrollbar"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="bulk-modal" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-zinc-800 w-full max-w-md p-6 rounded-2xl shadow-2xl border border-zinc-700">
+            <h3 class="text-lg font-bold mb-2">批次匯入</h3>
+            <p class="text-[10px] text-zinc-400 mb-3">格式：歌名, 專輯 (每行一首)</p>
+            <textarea id="bulk-input" rows="8" placeholder="例如：&#10;季節は次々死んでいく, 世界収束二一一六&#10;僕が死のうと思ったのは, 虛無病" class="w-full bg-zinc-900 border border-zinc-700 p-3 rounded-lg text-xs text-white resize-none font-mono outline-none"></textarea>
+            <div class="flex gap-2 mt-4">
+                <button onclick="toggleBulkModal()" class="flex-1 bg-zinc-700 text-white py-2 rounded font-bold text-xs">取消</button>
+                <button id="bulk-import-btn" class="flex-1 bg-green-600 text-white py-2 rounded font-bold text-xs">確認匯入</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'shared-song-library';
+
+        let user = null;
+        let bgConfig = { scale: 100, x: 50, y: 50 };
+        let useWhiteTags = false;
+        let allLibrarySongs = []; // 存儲所有從 Firebase 獲取的歌曲以供搜尋
+
+        onAuthStateChanged(auth, (u) => { user = u; if (user) listenToSongLibrary(); });
+
+        const initAuth = async () => {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
+            }
+        };
+        initAuth();
+
+        // 監聽搜尋輸入
+        document.getElementById('library-search').addEventListener('input', (e) => {
+            renderLibrary(e.target.value.toLowerCase());
+        });
+
+        function listenToSongLibrary() {
+            const libraryCol = collection(db, 'artifacts', appId, 'public', 'data', 'song_library');
+            onSnapshot(libraryCol, (snapshot) => {
+                allLibrarySongs = snapshot.docs.map(doc => doc.data());
+                renderLibrary(); // 初始渲染
+            }, (error) => console.error(error));
+        }
+
+        // 渲染歌庫 UI，支援過濾
+        function renderLibrary(filter = '') {
+            const libraryUI = document.getElementById('library-list-ui');
+            libraryUI.innerHTML = '';
+            
+            const filteredSongs = allLibrarySongs.filter(song => 
+                song.name.toLowerCase().includes(filter) || 
+                (song.album && song.album.toLowerCase().includes(filter))
+            );
+
+            if (filteredSongs.length === 0) {
+                libraryUI.innerHTML = '<div class="text-center text-zinc-500 py-10 text-xs">找不到符合的歌曲</div>';
+                return;
+            }
+
+            filteredSongs.forEach(song => {
+                const item = document.createElement('div');
+                item.className = 'p-2 bg-zinc-800 rounded border border-zinc-700 hover:border-green-500 cursor-pointer text-xs group transition-all';
+                item.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <div class="font-bold text-white">${song.name}</div>
+                            <div class="text-zinc-500 text-[10px]">${song.album || ''}</div>
+                        </div>
+                        <div class="text-green-500 opacity-0 group-hover:opacity-100 text-[10px] font-bold">+ 加入</div>
+                    </div>`;
+                item.onclick = () => { createItemUI(song.name, song.album); syncPoster(); switchTab('edit'); };
+                libraryUI.appendChild(item);
+            });
+        }
+
+        async function saveSongToLibrary(name, album) {
+            if (!user || !name) return;
+            // 簡單去重 ID
+            const songId = btoa(encodeURIComponent(name.toLowerCase() + (album ? album.toLowerCase() : ""))).substring(0, 50);
+            const songDoc = doc(db, 'artifacts', appId, 'public', 'data', 'song_library', songId);
+            try {
+                await setDoc(songDoc, { name, album: album || '', lastUsed: serverTimestamp() }, { merge: true });
+            } catch (e) { console.error(e); }
+        }
+
+        window.switchTab = (tab) => {
+            document.getElementById('panel-edit').classList.toggle('hidden', tab !== 'edit');
+            document.getElementById('panel-library').classList.toggle('hidden', tab !== 'library');
+            document.getElementById('tab-edit').classList.toggle('active', tab === 'edit');
+            document.getElementById('tab-library').classList.toggle('active', tab === 'library');
+        };
+
+        window.toggleBulkModal = () => document.getElementById('bulk-modal').classList.toggle('hidden');
+
+        const playlistUI = document.getElementById('playlist-list-ui');
+        Sortable.create(playlistUI, { animation: 250, ghostClass: 'ghost', onEnd: () => syncPoster() });
+
+        window.createItemUI = (name, album) => {
+            const item = document.createElement('div');
+            item.className = 'sortable-item flex items-center justify-between p-2 bg-zinc-800 rounded-lg border border-zinc-700';
+            item.dataset.name = name;
+            item.dataset.album = album;
+            item.innerHTML = `<div class="truncate flex-1 pointer-events-none"><div class="text-[11px] font-bold text-white">${name}</div><div class="text-[9px] text-zinc-500">${album || ''}</div></div><button class="text-zinc-500 hover:text-red-400 ml-2" onclick="this.parentElement.remove(); syncPoster();">✕</button>`;
+            playlistUI.appendChild(item);
+        };
+
+        document.getElementById('add-custom-btn').addEventListener('click', () => {
+            const name = document.getElementById('custom-name').value.trim();
+            const album = document.getElementById('custom-album').value.trim();
+            if (!name) return;
+            createItemUI(name, album);
+            saveSongToLibrary(name, album);
+            document.getElementById('custom-name').value = '';
+            document.getElementById('custom-album').value = '';
+            syncPoster();
+        });
+
+        document.getElementById('bulk-import-btn').addEventListener('click', async () => {
+            const rawText = document.getElementById('bulk-input').value.trim();
+            const lines = rawText.split('\n');
+            for (const line of lines) {
+                const parts = line.split(/[,;|\t]/);
+                const name = parts[0]?.trim();
+                const album = parts[1]?.trim() || "";
+                if (name) { 
+                    createItemUI(name, album);
+                    await saveSongToLibrary(name, album);
+                }
+            }
+            document.getElementById('bulk-input').value = '';
+            toggleBulkModal();
+            syncPoster();
+        });
+
+        document.getElementById('clear-all-btn').addEventListener('click', () => { playlistUI.innerHTML = ''; syncPoster(); });
+
+        window.syncPoster = () => {
+            const posterItems = document.getElementById('playlist-items');
+            posterItems.innerHTML = '';
+            const items = Array.from(playlistUI.querySelectorAll('.sortable-item'));
+            let scale = 1.0;
+            if (items.length > 12) scale = 0.9;
+            if (items.length > 18) scale = 0.75;
+            document.documentElement.style.setProperty('--tag-scale', scale);
+            
+            items.forEach((item, index) => {
+                const tag = document.createElement('div');
+                tag.innerHTML = `
+                    <div class="song-tag ${useWhiteTags ? 'tag-white' : ''}">
+                        <div class="tag-inner">
+                            <div class="tag-index">${index + 1}.</div>
+                            <div class="tag-content">
+                                <div class="tag-name">${item.dataset.name}</div>
+                                ${item.dataset.album ? `<div class="tag-album">(from ${item.dataset.album})</div>` : ''}
+                            </div>
+                        </div>
+                    </div>`;
+                posterItems.appendChild(tag);
+            });
+        };
+
+        document.getElementById('nickname-input').addEventListener('input', (e) => {
+            const lines = e.target.value.split('\n');
+            const container = document.getElementById('title-container');
+            container.innerHTML = `<div class="title-main">${lines[0]||''}</div>${lines[1]?`<div class="title-sub">${lines[1]}</div>`:''}`;
+        });
+
+        document.getElementById('bg-upload').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    document.getElementById('capture-zone').style.backgroundImage = `url(${ev.target.result})`;
+                    document.getElementById('capture-zone').style.backgroundColor = 'transparent';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function updateBg() {
+            const zone = document.getElementById('capture-zone');
+            zone.style.backgroundSize = `${bgConfig.scale}%`;
+            zone.style.backgroundPosition = `${bgConfig.x}% ${bgConfig.y}%`;
+        }
+        document.getElementById('bg-scale').addEventListener('input', (e) => { bgConfig.scale = e.target.value; updateBg(); });
+        document.getElementById('bg-x').addEventListener('input', (e) => { bgConfig.x = e.target.value; updateBg(); });
+        document.getElementById('bg-y').addEventListener('input', (e) => { bgConfig.y = e.target.value; updateBg(); });
+        
+        document.getElementById('toggle-color').addEventListener('click', () => {
+            const z = document.getElementById('capture-zone');
+            z.style.color = z.style.color === 'black' ? 'white' : 'black';
+        });
+        document.getElementById('toggle-tag-color').addEventListener('click', () => { useWhiteTags = !useWhiteTags; syncPoster(); });
+
+        document.getElementById('export-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('export-btn');
+            const originalText = btn.innerText;
+            btn.innerText = '處理中...';
+            const poster = document.getElementById('capture-zone');
+            const oldT = poster.style.transform;
+            poster.style.transform = 'scale(1)'; 
+            
+            const canvas = await html2canvas(poster, { 
+                scale: 3, 
+                useCORS: true, 
+                width: 592, 
+                height: 400,
+                logging: false
+            });
+            
+            poster.style.transform = oldT;
+            const link = document.createElement('a');
+            link.download = `My_Setlist.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            btn.innerText = originalText;
+        });
+
+        function adjustLayout() {
+            const p = document.getElementById('capture-zone');
+            const wrapper = document.getElementById('scale-wrapper');
+            const scale = Math.min(1, (wrapper.parentElement.clientWidth - 32) / 592);
+            p.style.transform = `scale(${scale})`;
+            wrapper.style.height = `${(400 * scale) + 20}px`;
+        }
+        window.addEventListener('resize', adjustLayout);
+        window.addEventListener('load', adjustLayout);
+    </script>
+</body>
+</html>
