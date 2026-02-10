@@ -3,18 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>歌單海報產生器</title>
+    <title>歌單海報產生器 (Amazarashi 風格最終版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
+        /* 引入 Noto Sans JP (日文) 與 Noto Sans TC (中文) */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Noto+Sans+TC:wght@400;700;900&display=swap');
         
         :root {
             --tag-scale: 1; 
         }
 
-        body { font-family: 'Noto Sans TC', sans-serif; overflow: hidden; background-color: #18181b; }
+        /* 字型設定：優先使用日文黑體，再使用中文黑體 */
+        body { 
+            font-family: 'Noto Sans JP', 'Noto Sans TC', sans-serif; 
+            overflow: hidden; 
+            background-color: #18181b; 
+        }
+        
         .ghost { opacity: 0.2; background: #3f3f46 !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
@@ -69,6 +76,8 @@
             min-width: calc(18px * var(--tag-scale)); 
             text-align: right;
             font-style: italic;
+            /* 針對日文字型微調 baseline */
+            font-family: 'Noto Sans JP', sans-serif; 
         }
 
         .tag-content {
