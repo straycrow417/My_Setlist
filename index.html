@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>歌單海報產生器 (Amazarashi 風格最終版)</title>
+    <title>歌單海報產生器</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -44,7 +44,7 @@
             text-align: left;
             min-width: fit-content;
             max-width: 90%; 
-            transition: none; /* 移除過渡以避免計算時的延遲誤差 */
+            transition: none; 
         }
 
         .song-tag.tag-white {
@@ -133,7 +133,6 @@
             justify-content: flex-end; 
             width: 100%;
             overflow: visible;
-            /* 高度將由 JS 動態控制 */
         }
 
         .tab-btn.active { border-bottom: 2px solid #22c55e; color: white; }
@@ -253,6 +252,7 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // === 手動設定區 (注意安全) ===
         const manualConfig = {
             apiKey: "AIzaSyDhP9JryXni2a6SOka73Lgng80DBwg0esI",
   authDomain: "my-setlist-25d7a.firebaseapp.com",
@@ -335,7 +335,7 @@
                 <button class="text-zinc-500 hover:text-red-400 p-1 transition-all flex-shrink-0" onclick="deleteSong('${id}')">✕</button>
             `;
             playlistUI.appendChild(li);
-            updateIndices(); // 新增後觸發檢查
+            updateIndices(); 
         };
 
         window.deleteSong = (id) => {
@@ -359,7 +359,7 @@
 
         // --- 核心邏輯：自動計算縮放與邊界檢查 ---
         function updateIndices() {
-            // 1. 重置縮放，計算可用的內容高度
+            // 1. 重置縮放
             let scale = 1.0;
             document.documentElement.style.setProperty('--tag-scale', scale);
 
@@ -368,7 +368,7 @@
             const totalH = 400; 
             const availableH = totalH - contentPadding - titleH - 10; // 10px buffer
             
-            // 設定容器高度，這會強迫 flex column wrapping
+            // 設定容器高度
             posterContainer.style.height = `${availableH}px`;
 
             // 重新繪製內容
@@ -388,17 +388,15 @@
             });
 
             // 2. 邊界碰撞檢測 loop
-            // 使用 setTimeout 確保 DOM 渲染完畢後再測量
             setTimeout(() => {
                 checkOverflowAndShrink(availableH, 1.0);
             }, 0);
         }
 
         function checkOverflowAndShrink(availableHeight, currentScale) {
-            if (currentScale < 0.4) return; // 最小縮放限制
+            if (currentScale < 0.4) return; 
 
             const containerRect = document.querySelector('.content-layer').getBoundingClientRect();
-            // 左邊界限制 (海報 padding-left)
             const limitLeft = containerRect.left + 24; 
             
             let minLeft = Infinity;
@@ -409,24 +407,19 @@
                 if (r.left < minLeft) minLeft = r.left;
             });
 
-            // 如果最左邊的標籤 跑到了 容器左padding 的更左邊 -> 爆版了
             if (minLeft < limitLeft) {
-                // 縮小，然後遞迴檢查
                 const nextScale = currentScale - 0.05;
                 document.documentElement.style.setProperty('--tag-scale', nextScale);
-                // 必須重新計算佈局
                 setTimeout(() => checkOverflowAndShrink(availableHeight, nextScale), 0);
             }
         }
 
-        // 標題變動時，高度改變，需要重新檢查佈局
         document.getElementById('nickname-input').addEventListener('input', (e) => {
             const lines = e.target.value.split('\n');
             document.getElementById('title-container').innerHTML = `<div class="title-main">${lines[0] || ''}</div><div class="title-sub">${lines[1] || ''}</div>`;
             updateIndices(); 
         });
 
-        // 儲存與社群
         async function saveToCloud(name, album) {
             if (!db || !user) return;
             const id = btoa(encodeURIComponent(name + album)).substring(0, 24);
@@ -439,7 +432,13 @@
         function listenToLibrary() {
             if (!db) return;
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'song_library'), (snap) => {
-                allLibrarySongs = snap.docs.map(doc => doc.data());
+                allLibrarySongs = snap.docs.map(doc => doc.data()).sort((a, b) => {
+                    const albumA = (a.album || "").toString();
+                    const albumB = (b.album || "").toString();
+                    const albumCompare = albumA.localeCompare(albumB, "zh-Hant");
+                    if (albumCompare !== 0) return albumCompare;
+                    return (a.name || "").localeCompare(b.name || "", "zh-Hant");
+                });
                 renderLibrary();
             }, (err) => console.error(err));
         }
@@ -494,7 +493,7 @@
             if(confirm('確定要清空歌單嗎？')) { 
                 posterContainer.innerHTML = '';
                 playlistUI.innerHTML = '';
-                updateIndices(); // 清空後也要重置高度計算
+                updateIndices(); 
             }
         };
 
