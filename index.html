@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>歌單海報產生器 (最終完美版)</title>
+    <title>歌單海報產生器</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -15,13 +15,11 @@
         .ghost { opacity: 0.2; background: #3f3f46 !important; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        /* 海報主體 */
         .poster-size {
             width: 592px; height: 400px; position: relative; overflow: hidden;
             flex-shrink: 0; background-color: #2d5a3a; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
-        /* 標籤樣式 */
         .song-tag {
             background-color: rgba(0, 0, 0, 0.6); color: white;
             padding: calc(5px * var(--tag-scale)) calc(10px * var(--tag-scale)); 
@@ -29,8 +27,9 @@
             margin-bottom: calc(4px * var(--tag-scale)); margin-left: calc(10px * var(--tag-scale));  
             border-right: calc(2px * var(--tag-scale)) solid rgba(255, 255, 255, 0.2);
             border-bottom: calc(2px * var(--tag-scale)) solid rgba(255, 255, 255, 0.2);
-            text-align: left; min-width: fit-content; max-width: 90%; 
-            transition: none; 
+            text-align: left; 
+            min-width: fit-content; max-width: 90%; 
+            transition: none;
         }
         .song-tag.tag-white {
             background-color: rgba(255, 255, 255, 0.6); color: black;
@@ -38,36 +37,36 @@
             border-bottom: calc(2px * var(--tag-scale)) solid rgba(0, 0, 0, 0.3);
         }
 
-        /* 排版關鍵修正：確保兩行顯示且對齊 */
         .song-tag > .tag-inner {
             transform: skewX(5deg);
             display: flex; 
-            align-items: flex-start; /* 頂端對齊，避免跑版 */
+            align-items: flex-start;
             gap: calc(6px * var(--tag-scale)); 
         }
 
         .tag-index {
             font-size: calc(13px * var(--tag-scale)); 
             font-weight: 900;
-            line-height: 1.1; /* 與歌名行高一致 */
+            line-height: 1.1;
             flex-shrink: 0;
             min-width: calc(18px * var(--tag-scale)); 
             text-align: right;
             font-style: italic;
-            padding-top: 0.1em; /* 微調垂直位置，對齊歌名 */
+            padding-top: 0.1em;
         }
 
         .tag-content {
             display: flex;
-            flex-direction: column; /* 這裡確保一定是垂直排列 */
+            flex-direction: column; 
             justify-content: flex-start;
+            flex: 1;
         }
 
         .tag-name {
             display: block;
             font-size: calc(13px * var(--tag-scale));
             font-weight: 900;
-            line-height: 1.1;
+            line-height: 1.1; 
             letter-spacing: 0.02em;
             white-space: nowrap; 
         }
@@ -81,7 +80,7 @@
             margin-top: 1px;
             white-space: nowrap; 
         }
-        
+
         .content-layer { position: relative; z-index: 10; height: 100%; display: flex; flex-direction: column; padding: 24px; box-sizing: border-box; }
         .title-main { font-size: 1.8rem; font-weight: 900; line-height: 1.1; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
         .title-sub { font-size: 1rem; opacity: 0.8; padding-left: 1em; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
@@ -97,7 +96,6 @@
 <body class="text-zinc-100 h-[100dvh] flex flex-col">
 
     <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
-        <!-- 左側：海報預覽區 -->
         <div class="flex-1 p-4 flex flex-col items-center bg-zinc-800 relative overflow-y-auto">
             <div id="scale-wrapper" class="w-full flex justify-center items-start pt-4 transition-all duration-300">
                 <div id="capture-zone" class="poster-size shadow-2xl">
@@ -111,7 +109,6 @@
                 </div>
             </div>
 
-            <!-- 控制面板 -->
             <div class="mt-6 w-full max-w-3xl bg-zinc-700/50 p-5 rounded-2xl border border-zinc-600 backdrop-blur-sm shadow-xl">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="space-y-3">
@@ -141,25 +138,23 @@
             </div>
         </div>
 
-        <!-- 右側：編輯與搜尋面板 -->
         <div class="w-full lg:w-[380px] h-[55vh] lg:h-auto bg-zinc-900 border-l border-zinc-800 p-5 flex flex-col">
             <div class="flex gap-6 border-b border-zinc-800 mb-5 text-sm font-bold">
                 <button id="tab-edit" class="tab-btn pb-3 active transition-all" onclick="switchTab('edit')">目前歌單</button>
                 <button id="tab-library" class="tab-btn pb-3 text-zinc-500 transition-all" onclick="switchTab('library')">社群歌庫</button>
             </div>
             
-            <div id="panel-edit" class="flex flex-col flex-1 overflow-hidden">
-                <!-- Spotify / 手動輸入區 -->
+            <div id="panel-edit" class="flex flex-col flex-1 overflow-hidden relative">
                 <div class="mb-4 space-y-2">
                     <div id="spotify-login-area">
-                        <button id="login-spotify-btn" class="w-full bg-[#1DB954] hover:bg-[#1ed760] text-black font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-2 transition-colors">
+                        <button id="login-spotify-btn" class="w-full bg-[#1DB954] hover:bg-[#1ed760] text-black font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-2">
                             <span>登入 Spotify 搜尋歌曲</span>
                         </button>
                     </div>
                     
                     <div id="spotify-search-area" class="hidden flex flex-col gap-2">
                         <div class="flex gap-2">
-                            <input type="text" id="spotify-query" placeholder="輸入歌曲關鍵字..." class="flex-1 bg-zinc-800 p-2.5 rounded-lg text-xs border border-zinc-700 outline-none focus:border-[#1DB954]">
+                            <input type="text" id="spotify-query" placeholder="搜尋 Spotify 歌曲..." class="flex-1 bg-zinc-800 p-2.5 rounded-lg text-xs border border-zinc-700 outline-none focus:border-[#1DB954]">
                             <button id="search-spotify-btn" class="bg-zinc-700 hover:bg-zinc-600 text-white px-4 rounded-lg text-xs">搜尋</button>
                         </div>
                     </div>
@@ -177,9 +172,7 @@
                     </details>
                 </div>
 
-                <!-- 列表容器：切換顯示歌單或搜尋結果 -->
                 <div class="relative flex-1 overflow-hidden">
-                    <!-- A. 歌單模式 -->
                     <div id="playlist-view" class="h-full flex flex-col">
                         <div class="text-[10px] text-zinc-500 text-center mb-2 italic">※ 請直接在左側海報上拖曳標籤以排序</div>
                         <div id="playlist-list-ui" class="flex-1 overflow-y-auto space-y-2 no-scrollbar pr-1"></div>
@@ -189,7 +182,6 @@
                         </div>
                     </div>
 
-                    <!-- B. 搜尋結果模式 (覆蓋層) -->
                     <div id="spotify-results-view" class="hidden absolute inset-0 bg-zinc-900 z-50 flex flex-col h-full">
                         <div class="flex justify-between items-center p-2 bg-zinc-800 border-b border-zinc-700">
                             <span id="search-status" class="text-xs text-zinc-400">搜尋結果</span>
@@ -210,12 +202,11 @@
         </div>
     </div>
 
-    <!-- 批次匯入 Modal -->
     <div id="bulk-modal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center p-4 z-[100] backdrop-blur-sm">
         <div class="bg-zinc-800 p-8 rounded-2xl w-full max-w-md border border-zinc-700 shadow-2xl">
             <h3 class="font-bold text-lg mb-2">批次匯入</h3>
             <p class="text-[10px] text-zinc-500 mb-4">格式：歌名,專輯 (一行一首)</p>
-            <textarea id="bulk-input" rows="8" class="w-full bg-zinc-900 p-4 rounded-xl text-xs mb-6 outline-none focus:ring-1 focus:ring-green-500" placeholder="歌曲名稱,專輯名稱&#10;穴を掘っている,ボイコット"></textarea>
+            <textarea id="bulk-input" rows="8" class="w-full bg-zinc-900 p-4 rounded-xl text-xs mb-6 outline-none focus:ring-1 focus:ring-green-500" placeholder="歌名1,專輯1&#10;歌名2,專輯2"></textarea>
             <div class="flex gap-3">
                 <button onclick="toggleBulkModal()" class="flex-1 bg-zinc-700 py-3 rounded-xl text-xs font-bold">取消</button>
                 <button id="bulk-import-btn" class="flex-1 bg-green-600 py-3 rounded-xl text-xs font-bold">開始匯入</button>
@@ -256,14 +247,17 @@
                     try {
                         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
                         else await signInAnonymously(auth);
-                    } catch (e) { console.warn("Firebase Auth Error", e); }
+                    } catch (err) { console.warn("驗證失敗:", err); }
                 };
                 onAuthStateChanged(auth, u => { user = u; if (user) listenToLibrary(); });
                 startAuth();
-            } catch(e) { console.error("Firebase Init Error", e); }
+            } catch(e) { console.error("FB Init Error", e); }
         }
 
-        // Spotify Auth Logic
+        // Spotify Logic
+        let spotifyToken = localStorage.getItem('spotify_access_token');
+        let tokenExpiry = localStorage.getItem('spotify_token_expiry');
+
         function initSpotifyState() {
             const urlParams = new URLSearchParams(window.location.search);
             const code = urlParams.get('code');
@@ -272,10 +266,10 @@
         }
 
         function checkTokenValidity() {
-            const token = localStorage.getItem('spotify_access_token');
-            const expiry = localStorage.getItem('spotify_token_expiry');
-            // Token 有效期判定
-            if (token && expiry && Date.now() < parseInt(expiry)) {
+            spotifyToken = localStorage.getItem('spotify_access_token');
+            tokenExpiry = localStorage.getItem('spotify_token_expiry');
+            
+            if (spotifyToken && tokenExpiry && Date.now() < parseInt(tokenExpiry)) {
                 showSearchUI();
             } else {
                 showLoginUI();
@@ -333,7 +327,7 @@
                 if (data.access_token) {
                     localStorage.setItem('spotify_access_token', data.access_token);
                     localStorage.setItem('spotify_token_expiry', Date.now() + (data.expires_in * 1000));
-                    showSearchUI();
+                    checkTokenValidity();
                 }
             } catch (e) { console.error(e); }
         }
@@ -341,13 +335,12 @@
         // Spotify Search
         document.getElementById('search-spotify-btn').onclick = async () => {
             const q = document.getElementById('spotify-query').value.trim();
-            // 每次搜尋強制從 Storage 讀取 Token，避免變數狀態不一致
-            const token = localStorage.getItem('spotify_access_token');
+            // 重新讀取 Token
+            checkTokenValidity();
             
             if (!q) return;
-            if (!token) { showLoginUI(); return; }
+            if (!spotifyToken) { showLoginUI(); return; }
 
-            // 切換到搜尋結果介面
             document.getElementById('playlist-view').classList.add('hidden');
             const resultsView = document.getElementById('spotify-results-view');
             const resultsList = document.getElementById('spotify-results-list');
@@ -359,7 +352,7 @@
 
             try {
                 const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=50`, {
-                    headers: { 'Authorization': 'Bearer ' + token }
+                    headers: { 'Authorization': 'Bearer ' + spotifyToken }
                 });
 
                 if (res.status === 401) {
@@ -372,12 +365,8 @@
                 if (!res.ok) throw new Error('API Error');
 
                 const data = await res.json();
-                status.innerText = `搜尋結果：${data.tracks.items.length} 筆`;
+                status.innerText = `結果：${data.tracks.items.length} 筆`;
                 
-                if (data.tracks.items.length === 0) {
-                    resultsList.innerHTML = '<div class="text-center text-zinc-500 py-10">找不到歌曲</div>';
-                }
-
                 data.tracks.items.forEach(track => {
                     const div = document.createElement('div');
                     div.className = 'flex justify-between items-center p-3 hover:bg-zinc-800 rounded cursor-pointer border-b border-zinc-800 last:border-0';
@@ -447,7 +436,6 @@
             });
         }
 
-        // 核心更新：確保兩行顯示
         function updateIndices() {
             let scale = 1.0;
             document.documentElement.style.setProperty('--tag-scale', scale);
@@ -460,7 +448,6 @@
                 const name = tag.getAttribute('data-name');
                 const album = tag.getAttribute('data-album');
                 tag.className = `song-tag ${useWhiteTags ? 'tag-white' : ''}`;
-                // 使用 block 結構確保分行
                 tag.innerHTML = `
                     <div class="tag-inner">
                         <span class="tag-index">${i + 1}.</span>
@@ -518,7 +505,16 @@
             });
         }
 
-        // Bindings
+        // Functions exposed to window
+        window.switchTab = (tab) => {
+            const isEdit = tab === 'edit';
+            document.getElementById('panel-edit').classList.toggle('hidden', !isEdit);
+            document.getElementById('panel-library').classList.toggle('hidden', isEdit);
+            document.getElementById('tab-edit').className = `tab-btn pb-3 transition-all ${tab === 'edit' ? 'active text-white' : 'text-zinc-500'}`;
+            document.getElementById('tab-library').className = `tab-btn pb-3 transition-all ${tab === 'library' ? 'active text-white' : 'text-zinc-500'}`;
+        };
+        window.toggleBulkModal = () => document.getElementById('bulk-modal').classList.toggle('hidden');
+
         document.getElementById('library-search').oninput = (e) => renderLibrary(e.target.value.toLowerCase());
         document.getElementById('spotify-query').onkeypress = (e) => { if(e.key === 'Enter') document.getElementById('search-spotify-btn').click(); };
 
