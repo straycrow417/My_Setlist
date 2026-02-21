@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>歌單海報產生器 (極致修復版)</title>
+    <title>歌單海報產生器 (含試聽功能)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -235,6 +235,10 @@
         let db = null, auth = null, user = null;
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'my-poster-app';
         let allLibrarySongs = [];
+        
+        // 音訊播放器全域變數
+        let currentAudio = null;
+        let currentlyPlayingUrl = null;
 
         if (firebaseConfig.apiKey) {
             try {
@@ -344,6 +348,50 @@
             }
         }
 
+        // 歌曲試聽功能
+        window.togglePreview = (e, url, element) => {
+            e.stopPropagation(); // 阻止點擊事件冒泡到父層
+            
+            if (!url || url === 'null') {
+                alert('版權限制，Spotify 未提供此歌曲的預覽音檔 😢');
+                return;
+            }
+
+            // 尋找所有的播放圖示並重置回原狀
+            document.querySelectorAll('.play-icon').forEach(el => {
+                if(el.dataset.hasUrl === 'true') el.innerText = '▶';
+            });
+            const iconEl = element.querySelector('.play-icon');
+
+            // 如果點擊的是正在播放的歌曲，則暫停
+            if (currentAudio && currentlyPlayingUrl === url) {
+                if (!currentAudio.paused) {
+                    currentAudio.pause();
+                    iconEl.innerText = '▶';
+                } else {
+                    currentAudio.play();
+                    iconEl.innerText = '⏸';
+                }
+                return;
+            }
+
+            // 播放新的歌曲
+            if (currentAudio) {
+                currentAudio.pause();
+            }
+
+            currentAudio = new Audio(url);
+            currentAudio.volume = 0.5; // 音量適中
+            currentlyPlayingUrl = url;
+            currentAudio.play();
+            iconEl.innerText = '⏸';
+
+            currentAudio.onended = () => {
+                iconEl.innerText = '▶';
+                currentlyPlayingUrl = null;
+            };
+        };
+
         async function searchSpotify() {
             const q = document.getElementById('spotify-query').value.trim();
             if (!q) return;
@@ -365,7 +413,6 @@
             status.innerText = '搜尋中...';
 
             try {
-                // 移除 limit=50 參數，改用 API 預設的安全值，避免 "Invalid limit" 錯誤
                 const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track`, {
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
@@ -381,8 +428,6 @@
                     
                     if (res.status === 401) throw new Error('AUTH_EXPIRED');
                     if (res.status === 403) throw new Error('FORBIDDEN_DEV_MODE');
-                    
-                    // 其他 API 錯誤（包含 Invalid limit 等），不強制登出
                     throw new Error(`API_ERROR|${spotifyErrorMsg}`);
                 }
 
@@ -391,18 +436,30 @@
                 
                 data.tracks.items.forEach(track => {
                     const div = document.createElement('div');
-                    div.className = 'flex justify-between items-center p-3 hover:bg-zinc-800 rounded cursor-pointer border-b border-zinc-800 last:border-0';
+                    div.className = 'flex justify-between items-center p-2 hover:bg-zinc-800 rounded border-b border-zinc-800 last:border-0 group/item';
+                    
+                    // 抓取專輯封面 (通常 [2] 是最小尺寸，若無則降級)
+                    const images = track.album.images;
+                    const imgUrl = images.length > 0 ? images[images.length - 1].url : '';
+                    const previewUrl = track.preview_url;
+                    
+                    // 根據是否有預覽音檔設定圖示
+                    const playIcon = previewUrl ? '▶' : '🔇';
+                    const hasUrlFlag = previewUrl ? 'true' : 'false';
+
                     div.innerHTML = `
-                        <div class="truncate mr-2 flex-1">
+                        <div class="relative w-10 h-10 flex-shrink-0 mr-3 cursor-pointer group/img" onclick="togglePreview(event, '${previewUrl}', this)">
+                            ${imgUrl ? `<img src="${imgUrl}" class="w-full h-full object-cover rounded shadow-sm" alt="cover">` : `<div class="w-full h-full bg-zinc-700 rounded"></div>`}
+                            <div class="absolute inset-0 bg-black/60 flex items-center justify-center rounded opacity-0 group-hover/img:opacity-100 transition-opacity">
+                                <span class="text-white text-xs play-icon" data-has-url="${hasUrlFlag}">${playIcon}</span>
+                            </div>
+                        </div>
+                        <div class="truncate mr-2 flex-1 cursor-pointer" onclick="addSong('${track.name.replace(/'/g, "\\'")}', '${track.album.name.replace(/'/g, "\\'")}'); saveToCloud('${track.name.replace(/'/g, "\\'")}', '${track.album.name.replace(/'/g, "\\'")}');">
                             <div class="text-xs font-bold text-white truncate">${track.name}</div>
                             <div class="text-[10px] text-zinc-500 truncate">${track.artists[0].name} - ${track.album.name}</div>
                         </div>
-                        <button class="text-green-500 font-bold text-lg px-2">+</button>
+                        <button class="text-green-500 font-bold text-lg px-2 hover:scale-110 transition-transform" onclick="addSong('${track.name.replace(/'/g, "\\'")}', '${track.album.name.replace(/'/g, "\\'")}'); saveToCloud('${track.name.replace(/'/g, "\\'")}', '${track.album.name.replace(/'/g, "\\'")}');">+</button>
                     `;
-                    div.onclick = () => {
-                        addSong(track.name, track.album.name);
-                        saveToCloud(track.name, track.album.name);
-                    };
                     resultsList.appendChild(div);
                 });
             } catch(e) { 
@@ -415,7 +472,6 @@
                     alert("⚠️ Spotify API 拒絕存取 (403 Forbidden)。\n\n您的 Spotify App 處於「開發模式」，請確保您登入的 Spotify 帳號 Email 有被加入到 Dashboard 的 User Management 白名單中。");
                     status.innerText = '錯誤：403 帳號未授權';
                 } else if (e.message.startsWith('API_ERROR')) {
-                    // API 參數錯誤，顯示錯誤但不強制登出
                     const specificMsg = e.message.split('|')[1];
                     alert(`⚠️ Spotify API 發生錯誤 (${specificMsg})。\n這通常是系統參數問題。請嘗試換個關鍵字搜尋。`);
                     status.innerText = '錯誤：' + specificMsg;
@@ -426,7 +482,14 @@
         }
         
         document.getElementById('search-spotify-btn').onclick = searchSpotify;
+        
+        // 關閉搜尋畫面時，自動暫停音樂
         document.getElementById('close-search-btn').onclick = () => {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+                currentlyPlayingUrl = null;
+            }
             document.getElementById('spotify-results-view').classList.add('hidden');
             document.getElementById('playlist-view').classList.remove('hidden');
             document.getElementById('spotify-query').value = '';
