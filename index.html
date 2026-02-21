@@ -30,10 +30,8 @@
             text-align: left; 
             min-width: fit-content; max-width: 90%; 
             transition: none;
-            /* 加入抓手圖示提示使用者可拖曳 */
             cursor: grab;
         }
-        /* 拖曳按住時變成抓取的圖示 */
         .song-tag:active {
             cursor: grabbing;
         }
@@ -129,13 +127,23 @@
                     <div class="space-y-3">
                         <p class="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">底圖調整</p>
                         <div class="space-y-3 pt-1">
-                            <div class="flex flex-col gap-1"><div class="flex justify-between text-[9px] text-zinc-400"><span>底圖縮放調整</span><span id="val-scale">100%</span></div><input type="range" id="bg-scale" min="100" max="300" value="100"></div>
-                            <div class="flex flex-col gap-1"><div class="flex justify-between text-[9px] text-zinc-400"><span>底圖水平調整</span><span id="val-x">50%</span></div><input type="range" id="bg-x" min="0" max="100" value="50"></div>
-                            <div class="flex flex-col gap-1"><div class="flex justify-between text-[9px] text-zinc-400"><span>底圖垂直調整</span><span id="val-y">50%</span></div><input type="range" id="bg-y" min="0" max="100" value="50"></div>
+                            <div class="flex flex-col gap-1"><div class="flex justify-between text-[9px] text-zinc-400"><span>底圖縮放調整</span><span id="val-scale"></span></div><input type="range" id="bg-scale" min="100" max="300" value="100"></div>
+                            <div class="flex flex-col gap-1"><div class="flex justify-between text-[9px] text-zinc-400"><span>底圖水平調整</span><span id="val-x"></span></div><input type="range" id="bg-x" min="0" max="100" value="50"></div>
+                            <div class="flex flex-col gap-1"><div class="flex justify-between text-[9px] text-zinc-400"><span>底圖垂直調整</span><span id="val-y"></span></div><input type="range" id="bg-y" min="0" max="100" value="50"></div>
                         </div>
                     </div>
                     <div class="flex flex-col justify-between space-y-3">
-                        <p class="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">輸出與檔案</p>
+                        <!-- 加入使用說明的資訊按鈕 -->
+                        <div class="flex justify-between items-center">
+                            <p class="text-[10px] text-zinc-400 font-bold uppercase tracking-widest m-0">檔案與輸出</p>
+                            <button onclick="openTutorial()" class="text-zinc-400 hover:text-white transition-colors outline-none flex items-center gap-1" title="查看使用說明">
+                                <span class="text-[10px] font-bold">使用說明</span>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" stroke-width="2"></circle>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16v-4m0-4h.01"></path>
+                                </svg>
+                            </button>
+                        </div>
                         <div class="flex-1 flex flex-col gap-2">
                             <label class="flex items-center justify-center gap-2 w-full bg-zinc-100 text-zinc-900 py-3 rounded-xl text-xs font-bold cursor-pointer hover:bg-white transition-all shadow-lg"><span>📷 上傳底圖</span><input type="file" id="bg-upload" accept="image/*" class="hidden"></label>
                             <button id="export-btn" class="w-full bg-green-600 text-white font-black py-4 rounded-xl text-xs shadow-lg hover:bg-green-500 transition-all uppercase tracking-tighter">⬇ 匯出圖片</button>
@@ -169,7 +177,7 @@
 
                     <details class="group border border-zinc-800 rounded-lg bg-zinc-800/30">
                         <summary class="cursor-pointer p-2 text-[10px] text-zinc-400 select-none flex justify-between items-center">
-                            <span>手動輸入 / 修正</span>
+                            <span>手動輸入</span>
                             <span class="text-zinc-600 group-open:rotate-180 transition-transform">▼</span>
                         </summary>
                         <div class="p-3 pt-0 grid grid-cols-2 gap-2 mt-2">
@@ -182,7 +190,6 @@
 
                 <div class="relative flex-1 overflow-hidden">
                     <div id="playlist-view" class="h-full flex flex-col">
-                        <!-- 緊湊版播放清單區域 -->
                         <div id="playlist-list-ui" class="flex-1 overflow-y-auto space-y-1.5 no-scrollbar pr-1"></div>
                         <div class="flex justify-between items-center mt-3 border-t border-zinc-800 pt-3">
                             <button onclick="toggleBulkModal()" class="text-[11px] text-zinc-400 hover:text-white underline decoration-dotted">批次匯入文字</button>
@@ -193,7 +200,7 @@
                     <div id="spotify-results-view" class="hidden absolute inset-0 bg-zinc-900 z-50 flex flex-col h-full">
                         <div class="flex justify-between items-center p-2 bg-zinc-800 border-b border-zinc-700">
                             <span id="search-status" class="text-xs text-zinc-400 truncate pr-2">搜尋結果</span>
-                            <button id="close-search-btn" class="flex-shrink-0 text-xs bg-zinc-700 px-3 py-1 rounded hover:bg-zinc-600 text-white">返回</button>
+                            <button id="close-search-btn" class="flex-shrink-0 text-xs bg-zinc-700 px-3 py-1 rounded hover:bg-zinc-600 text-white">返回歌單列表</button>
                         </div>
                         <div id="spotify-results-list" class="flex-1 overflow-y-auto p-2 space-y-1.5 no-scrollbar"></div>
                     </div>
@@ -205,13 +212,12 @@
                     <input type="text" id="library-search" placeholder="搜尋社群歌庫..." class="w-full bg-zinc-800 p-2.5 pl-8 rounded-lg text-xs border border-zinc-700 outline-none">
                     <span class="absolute left-3 top-2.5 opacity-30 text-xs">🔍</span>
                 </div>
-                <!-- 緊湊版社群歌庫清單 -->
                 <div id="library-list-ui" class="flex-1 overflow-y-auto space-y-1.5 pr-1 no-scrollbar"></div>
             </div>
         </div>
     </div>
 
-    <!-- Modal -->
+    <!-- 批次匯入 Modal -->
     <div id="bulk-modal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center p-4 z-[100] backdrop-blur-sm">
         <div class="bg-zinc-800 p-8 rounded-2xl w-full max-w-md border border-zinc-700 shadow-2xl">
             <h3 class="font-bold text-lg mb-2">批次匯入</h3>
@@ -224,12 +230,113 @@
         </div>
     </div>
 
+    <!-- 使用說明 Modal (相簿) -->
+    <div id="tutorial-modal" class="fixed inset-0 bg-black/95 hidden flex flex-col items-center justify-center z-[200] backdrop-blur-md">
+        <!-- 關閉按鈕 -->
+        <button onclick="closeTutorial()" class="absolute top-6 right-6 text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 p-3 rounded-full transition-colors z-[210] shadow-lg">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+
+        <div class="relative w-full max-w-5xl h-[75vh] flex items-center justify-center px-16">
+            <!-- 左切換 -->
+            <button onclick="prevTutorial()" id="tut-prev" class="absolute left-4 lg:left-0 text-white bg-zinc-800/50 hover:bg-green-600 p-4 rounded-full transition-colors disabled:opacity-30 disabled:hover:bg-zinc-800/50 z-[210]">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            
+            <!-- 圖片容器 -->
+            <img id="tut-img" src="" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl transition-opacity duration-300 select-none" alt="使用說明">
+            
+            <!-- 右切換 -->
+            <button onclick="nextTutorial()" id="tut-next" class="absolute right-4 lg:right-0 text-white bg-zinc-800/50 hover:bg-green-600 p-4 rounded-full transition-colors disabled:opacity-30 disabled:hover:bg-zinc-800/50 z-[210]">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+        </div>
+        
+        <!-- 頁數顯示 -->
+        <div class="mt-8 bg-zinc-800 px-6 py-2 rounded-full border border-zinc-700 shadow-lg flex items-center gap-3">
+            <span class="text-zinc-400 text-sm font-bold tracking-widest uppercase">Tutorial</span>
+            <div id="tut-counter" class="text-white font-mono text-lg font-bold">1 / 1</div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // === 手動設定區 ===
+        // ==========================================
+        // ★★★ 使用說明圖片設定區 ★★★
+        // 請將您上傳到雲端的圖片網址填入下方陣列中。
+        // 可以無限增加，只要用逗號分隔並用引號包起來即可。
+        // ==========================================
+        const tutorialImages = [
+            "https://duk.tw/JINt0u.png", // 第 1 頁 (這是範例圖片，請替換)
+            "https://duk.tw/354kpZ.png", // 第 2 頁 (這是範例圖片，請替換)
+            "https://duk.tw/MB8vtY.png",  // 第 3 頁 (這是範例圖片，請替換)
+			"https://duk.tw/Re53pq.png", // 第 4 頁 (這是範例圖片，請替換)
+            "https://duk.tw/JvkNtx.png", // 第 5 頁 (這是範例圖片，請替換)
+            "https://duk.tw/OaJH5a.png",  // 第 6 頁 (這是範例圖片，請替換)
+        ];
+
+        let currentTutorialStep = 0;
+
+        window.openTutorial = () => {
+            if(tutorialImages.length === 0) { alert("尚未設定說明圖片！"); return; }
+            currentTutorialStep = 0;
+            document.getElementById('tutorial-modal').classList.remove('hidden');
+            document.getElementById('tutorial-modal').classList.add('flex');
+            updateTutorialView();
+        };
+
+        window.closeTutorial = () => {
+            document.getElementById('tutorial-modal').classList.add('hidden');
+            document.getElementById('tutorial-modal').classList.remove('flex');
+        };
+
+        window.prevTutorial = () => {
+            if(currentTutorialStep > 0) {
+                currentTutorialStep--;
+                updateTutorialView();
+            }
+        };
+
+        window.nextTutorial = () => {
+            if(currentTutorialStep < tutorialImages.length - 1) {
+                currentTutorialStep++;
+                updateTutorialView();
+            }
+        };
+
+        function updateTutorialView() {
+            const imgEl = document.getElementById('tut-img');
+            const prevBtn = document.getElementById('tut-prev');
+            const nextBtn = document.getElementById('tut-next');
+            const counter = document.getElementById('tut-counter');
+
+            // 加入漸變效果
+            imgEl.style.opacity = '0';
+            setTimeout(() => {
+                imgEl.src = tutorialImages[currentTutorialStep];
+                imgEl.onload = () => { imgEl.style.opacity = '1'; };
+            }, 150);
+
+            counter.innerText = `${currentTutorialStep + 1} / ${tutorialImages.length}`;
+            prevBtn.disabled = currentTutorialStep === 0;
+            nextBtn.disabled = currentTutorialStep === tutorialImages.length - 1;
+        }
+
+        // 支援鍵盤左右鍵切換和 ESC 關閉
+        document.addEventListener('keydown', (e) => {
+            const modal = document.getElementById('tutorial-modal');
+            if(!modal.classList.contains('hidden')) {
+                if(e.key === 'ArrowRight') window.nextTutorial();
+                if(e.key === 'ArrowLeft') window.prevTutorial();
+                if(e.key === 'Escape') window.closeTutorial();
+            }
+        });
+
+
+        // === 原本的 Firebase 與 Spotify 邏輯 ===
         const manualConfig = { apiKey: "AIzaSyDhP9JryXni2a6SOka73Lgng80DBwg0esI",
   authDomain: "my-setlist-25d7a.firebaseapp.com",
   projectId: "my-setlist-25d7a",
@@ -243,15 +350,12 @@
         let db = null, auth = null, user = null;
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'my-poster-app';
         let allLibrarySongs = [];
-        
-        let currentAudio = null;
-        let currentlyPlayingElement = null;
+        let currentAudio = null; let currentlyPlayingElement = null;
 
         if (firebaseConfig.apiKey) {
             try {
                 const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
+                auth = getAuth(app); db = getFirestore(app);
                 const startAuth = async () => {
                     try {
                         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
@@ -263,394 +367,133 @@
             } catch(e) { console.error("FB Init Error", e); }
         }
 
-        window.forceLogoutSpotify = () => {
-            localStorage.removeItem('spotify_access_token');
-            localStorage.removeItem('spotify_token_expiry');
-            localStorage.removeItem('spotify_code_verifier');
-            showLoginUI();
-        };
-
-        function getValidToken() {
-            const token = localStorage.getItem('spotify_access_token');
-            const expiry = localStorage.getItem('spotify_token_expiry');
-            if (token && expiry && Date.now() < parseInt(expiry)) return token;
-            return null;
-        }
-
-        function initSpotifyState() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const code = urlParams.get('code');
-            if (code) { handleSpotifyCode(code); return; }
-            if (getValidToken()) showSearchUI();
-            else showLoginUI();
-        }
-
-        function showLoginUI() {
-            document.getElementById('spotify-login-area').classList.remove('hidden');
-            document.getElementById('spotify-search-area').classList.add('hidden');
-            document.getElementById('spotify-results-view').classList.add('hidden');
-            document.getElementById('playlist-view').classList.remove('hidden');
-        }
-
-        function showSearchUI() {
-            document.getElementById('spotify-login-area').classList.add('hidden');
-            document.getElementById('spotify-search-area').classList.remove('hidden');
-        }
-
-        function generateRandomString(length) {
-            let text = ''; const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-            for (let i = 0; i < length; i++) text += possible.charAt(Math.floor(Math.random() * possible.length));
-            return text;
-        }
-
-        async function generateCodeChallenge(v) {
-            const d = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(v));
-            return btoa(String.fromCharCode.apply(null, [...new Uint8Array(d)])).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-        }
+        window.forceLogoutSpotify = () => { localStorage.removeItem('spotify_access_token'); localStorage.removeItem('spotify_token_expiry'); localStorage.removeItem('spotify_code_verifier'); showLoginUI(); };
+        function getValidToken() { const token = localStorage.getItem('spotify_access_token'); const expiry = localStorage.getItem('spotify_token_expiry'); if (token && expiry && Date.now() < parseInt(expiry)) return token; return null; }
+        function initSpotifyState() { const urlParams = new URLSearchParams(window.location.search); const code = urlParams.get('code'); if (code) { handleSpotifyCode(code); return; } if (getValidToken()) showSearchUI(); else showLoginUI(); }
+        function showLoginUI() { document.getElementById('spotify-login-area').classList.remove('hidden'); document.getElementById('spotify-search-area').classList.add('hidden'); document.getElementById('spotify-results-view').classList.add('hidden'); document.getElementById('playlist-view').classList.remove('hidden'); }
+        function showSearchUI() { document.getElementById('spotify-login-area').classList.add('hidden'); document.getElementById('spotify-search-area').classList.remove('hidden'); }
+        function generateRandomString(length) { let text = ''; const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'; for (let i = 0; i < length; i++) text += possible.charAt(Math.floor(Math.random() * possible.length)); return text; }
+        async function generateCodeChallenge(v) { const d = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)); return btoa(String.fromCharCode.apply(null, [...new Uint8Array(d)])).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
 
         document.getElementById('login-spotify-btn').onclick = async () => {
             if (!spotifyClientId) { alert("請先填入 Spotify Client ID"); return; }
-            const verifier = generateRandomString(128);
-            const challenge = await generateCodeChallenge(verifier);
-            localStorage.setItem('spotify_code_verifier', verifier);
-            const args = new URLSearchParams({
-                response_type: 'code', client_id: spotifyClientId, scope: 'user-read-private',
-                redirect_uri: redirectUri, code_challenge_method: 'S256', code_challenge: challenge
-            });
+            const verifier = generateRandomString(128); const challenge = await generateCodeChallenge(verifier); localStorage.setItem('spotify_code_verifier', verifier);
+            const args = new URLSearchParams({ response_type: 'code', client_id: spotifyClientId, scope: 'user-read-private', redirect_uri: redirectUri, code_challenge_method: 'S256', code_challenge: challenge });
             window.location.href = 'https://accounts.spotify.com/authorize?' + args;
         };
 
         async function handleSpotifyCode(code) {
-            window.history.replaceState({}, document.title, window.location.pathname);
-            const verifier = localStorage.getItem('spotify_code_verifier');
-            if (!verifier) return;
-
-            const body = new URLSearchParams({
-                grant_type: 'authorization_code', code: code, redirect_uri: redirectUri,
-                client_id: spotifyClientId, code_verifier: verifier
-            });
-
-            try {
-                const res = await fetch('https://accounts.spotify.com/api/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body });
-                const data = await res.json();
-                if (data.access_token) {
-                    localStorage.setItem('spotify_access_token', data.access_token);
-                    localStorage.setItem('spotify_token_expiry', Date.now() + (data.expires_in * 1000));
-                    showSearchUI();
-                } else {
-                    forceLogoutSpotify();
-                }
-            } catch (e) { forceLogoutSpotify(); }
+            window.history.replaceState({}, document.title, window.location.pathname); const verifier = localStorage.getItem('spotify_code_verifier'); if (!verifier) return;
+            const body = new URLSearchParams({ grant_type: 'authorization_code', code: code, redirect_uri: redirectUri, client_id: spotifyClientId, code_verifier: verifier });
+            try { const res = await fetch('https://accounts.spotify.com/api/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body }); const data = await res.json(); if (data.access_token) { localStorage.setItem('spotify_access_token', data.access_token); localStorage.setItem('spotify_token_expiry', Date.now() + (data.expires_in * 1000)); showSearchUI(); } else { forceLogoutSpotify(); } } catch (e) { forceLogoutSpotify(); }
         }
 
         window.togglePreview = async (e, element) => {
-            e.stopPropagation(); 
-            const previewUrl = element.getAttribute('data-preview');
-            const fallbackQuery = element.getAttribute('data-fallback');
-            const spotifyUrl = element.getAttribute('data-spotify');
-            const iconEl = element.querySelector('.play-icon');
-
-            document.querySelectorAll('.play-icon').forEach(el => {
-                if (el !== iconEl) el.innerText = '▶';
-            });
-
+            e.stopPropagation(); const previewUrl = element.getAttribute('data-preview'); const fallbackQuery = element.getAttribute('data-fallback'); const spotifyUrl = element.getAttribute('data-spotify'); const iconEl = element.querySelector('.play-icon');
+            document.querySelectorAll('.play-icon').forEach(el => { if (el !== iconEl) el.innerText = '▶'; });
             let finalUrl = element.getAttribute('data-resolved-url') || previewUrl;
-
-            if (currentAudio && currentlyPlayingElement === element) {
-                if (!currentAudio.paused) { currentAudio.pause(); iconEl.innerText = '▶'; } 
-                else { currentAudio.play(); iconEl.innerText = '⏸'; }
-                return;
-            }
-
+            if (currentAudio && currentlyPlayingElement === element) { if (!currentAudio.paused) { currentAudio.pause(); iconEl.innerText = '▶'; } else { currentAudio.play(); iconEl.innerText = '⏸'; } return; }
             if (!finalUrl || finalUrl === 'null' || finalUrl === '') {
                 iconEl.innerText = '⏳'; 
-                try {
-                    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(fallbackQuery)}&media=music&limit=1`);
-                    const data = await res.json();
-                    if (data.results && data.results.length > 0 && data.results[0].previewUrl) {
-                        finalUrl = data.results[0].previewUrl;
-                        element.setAttribute('data-resolved-url', finalUrl); 
-                    } else {
-                        iconEl.innerText = '▶';
-                        if(confirm('Spotify 與 Apple Music 皆未提供此歌曲預覽。\n是否前往 Spotify 聆聽完整版？')) window.open(spotifyUrl, '_blank');
-                        return;
-                    }
-                } catch (err) {
-                    iconEl.innerText = '▶';
-                    alert('獲取預覽失敗，請確認網路。');
-                    return;
-                }
+                try { const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(fallbackQuery)}&media=music&limit=1`); const data = await res.json(); if (data.results && data.results.length > 0 && data.results[0].previewUrl) { finalUrl = data.results[0].previewUrl; element.setAttribute('data-resolved-url', finalUrl); } else { iconEl.innerText = '▶'; if(confirm('Spotify 與 Apple Music 皆未提供此歌曲預覽。\n是否前往 Spotify 聆聽完整版？')) window.open(spotifyUrl, '_blank'); return; } } catch (err) { iconEl.innerText = '▶'; alert('獲取預覽失敗，請確認網路。'); return; }
             }
-
-            if (currentAudio) currentAudio.pause();
-            currentAudio = new Audio(finalUrl);
-            currentAudio.volume = 0.5;
-            currentlyPlayingElement = element;
-            iconEl.innerText = '⏳';
-            
-            currentAudio.play().then(() => { iconEl.innerText = '⏸'; }).catch(err => { iconEl.innerText = '▶'; });
-            currentAudio.onended = () => { iconEl.innerText = '▶'; currentlyPlayingElement = null; };
+            if (currentAudio) currentAudio.pause(); currentAudio = new Audio(finalUrl); currentAudio.volume = 0.5; currentlyPlayingElement = element; iconEl.innerText = '⏳';
+            currentAudio.play().then(() => { iconEl.innerText = '⏸'; }).catch(err => { iconEl.innerText = '▶'; }); currentAudio.onended = () => { iconEl.innerText = '▶'; currentlyPlayingElement = null; };
         };
 
         async function searchSpotify() {
-            const q = document.getElementById('spotify-query').value.trim();
-            if (!q) return;
-
-            const token = getValidToken();
-            if (!token) { 
-                alert("Spotify 登入狀態已過期，請重新登入！"); 
-                forceLogoutSpotify(); 
-                return; 
-            }
-
-            document.getElementById('playlist-view').classList.add('hidden');
-            const resultsView = document.getElementById('spotify-results-view');
-            const resultsList = document.getElementById('spotify-results-list');
-            const status = document.getElementById('search-status');
-            
-            resultsView.classList.remove('hidden');
-            resultsList.innerHTML = '';
-            status.innerText = '搜尋中...';
-
+            const q = document.getElementById('spotify-query').value.trim(); if (!q) return;
+            const token = getValidToken(); if (!token) { alert("Spotify 登入狀態已過期，請重新登入！"); forceLogoutSpotify(); return; }
+            document.getElementById('playlist-view').classList.add('hidden'); const resultsView = document.getElementById('spotify-results-view'); const resultsList = document.getElementById('spotify-results-list'); const status = document.getElementById('search-status');
+            resultsView.classList.remove('hidden'); resultsList.innerHTML = ''; status.innerText = '搜尋中...';
             try {
-                const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track`, {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-
-                if (res.status === 401 || res.status === 403) {
-                    alert('偵測到授權狀態異常，已自動為您清除舊的登入資料，請重新登入！');
-                    forceLogoutSpotify();
-                    return;
-                }
-
-                if (!res.ok) {
-                    const errData = await res.json().catch(() => ({}));
-                    throw new Error(errData.error?.message || 'API_ERROR');
-                }
-
-                const data = await res.json();
-                status.innerText = `結果：${data.tracks.items.length} 筆`;
-                
+                const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track`, { headers: { 'Authorization': 'Bearer ' + token } });
+                if (res.status === 401 || res.status === 403) { alert('授權異常，已為您清除舊登入資料，請重新登入！'); forceLogoutSpotify(); return; }
+                if (!res.ok) throw new Error('API_ERROR');
+                const data = await res.json(); status.innerText = `結果：${data.tracks.items.length} 筆`;
                 data.tracks.items.forEach(track => {
-                    const div = document.createElement('div');
-                    div.className = 'flex justify-between items-center py-1.5 px-2 hover:bg-zinc-800 rounded-lg border border-transparent hover:border-zinc-700/50 transition-colors group/item';
-                    
-                    const images = track.album.images;
-                    const imgUrl = images.length > 0 ? images[images.length - 1].url : '';
-                    const fallbackQuery = `${track.name} ${track.artists[0].name}`;
-
-                    div.innerHTML = `
-                        <div class="relative w-9 h-9 flex-shrink-0 mr-3 cursor-pointer group/img preview-trigger">
-                            ${imgUrl ? `<img src="${imgUrl}" class="w-full h-full object-cover rounded shadow-sm" alt="cover">` : `<div class="w-full h-full bg-zinc-700 rounded"></div>`}
-                            <div class="absolute inset-0 bg-black/60 flex items-center justify-center rounded opacity-0 group-hover/img:opacity-100 transition-opacity">
-                                <span class="text-white text-xs play-icon">▶</span>
-                            </div>
-                        </div>
-                        <div class="truncate mr-2 flex-1 min-w-0 cursor-pointer" onclick="addSong('${track.name.replace(/'/g, "\\'")}', '${track.album.name.replace(/'/g, "\\'")}'); saveToCloud('${track.name.replace(/'/g, "\\'")}', '${track.album.name.replace(/'/g, "\\'")}');">
-                            <div class="text-xs font-bold text-zinc-200 truncate">${track.name}</div>
-                            <div class="text-[10px] text-zinc-500 truncate">${track.artists[0].name} - ${track.album.name}</div>
-                        </div>
-                        <button class="text-green-500 font-bold text-lg px-2 flex-shrink-0 hover:scale-110 transition-transform" onclick="addSong('${track.name.replace(/'/g, "\\'")}', '${track.album.name.replace(/'/g, "\\'")}'); saveToCloud('${track.name.replace(/'/g, "\\'")}', '${track.album.name.replace(/'/g, "\\'")}');">+</button>
-                    `;
-                    
-                    const trigger = div.querySelector('.preview-trigger');
-                    trigger.setAttribute('data-preview', track.preview_url || '');
-                    trigger.setAttribute('data-fallback', fallbackQuery);
-                    trigger.setAttribute('data-spotify', track.external_urls.spotify || '');
-                    trigger.onclick = (e) => togglePreview(e, trigger);
-
+                    const div = document.createElement('div'); div.className = 'flex justify-between items-center py-1.5 px-2 hover:bg-zinc-800 rounded-lg border border-transparent hover:border-zinc-700/50 transition-colors group/item';
+                    const imgUrl = track.album.images.length > 0 ? track.album.images[track.album.images.length - 1].url : ''; const fallbackQuery = `${track.name} ${track.artists[0].name}`;
+                    div.innerHTML = `<div class="relative w-9 h-9 flex-shrink-0 mr-3 cursor-pointer group/img preview-trigger">${imgUrl ? `<img src="${imgUrl}" class="w-full h-full object-cover rounded shadow-sm" alt="cover">` : `<div class="w-full h-full bg-zinc-700 rounded"></div>`}<div class="absolute inset-0 bg-black/60 flex items-center justify-center rounded opacity-0 group-hover/img:opacity-100 transition-opacity"><span class="text-white text-xs play-icon">▶</span></div></div><div class="truncate mr-2 flex-1 min-w-0 cursor-pointer" onclick="addSong('${track.name.replace(/'/g, "\\'")}', '${track.album.name.replace(/'/g, "\\'")}'); saveToCloud('${track.name.replace(/'/g, "\\'")}', '${track.album.name.replace(/'/g, "\\'")}');"><div class="text-xs font-bold text-zinc-200 truncate">${track.name}</div><div class="text-[10px] text-zinc-500 truncate">${track.artists[0].name} - ${track.album.name}</div></div><button class="text-green-500 font-bold text-lg px-2 flex-shrink-0 hover:scale-110 transition-transform" onclick="addSong('${track.name.replace(/'/g, "\\'")}', '${track.album.name.replace(/'/g, "\\'")}'); saveToCloud('${track.name.replace(/'/g, "\\'")}', '${track.album.name.replace(/'/g, "\\'")}');">+</button>`;
+                    const trigger = div.querySelector('.preview-trigger'); trigger.setAttribute('data-preview', track.preview_url || ''); trigger.setAttribute('data-fallback', fallbackQuery); trigger.setAttribute('data-spotify', track.external_urls.spotify || ''); trigger.onclick = (e) => togglePreview(e, trigger);
                     resultsList.appendChild(div);
                 });
-            } catch(e) { 
-                console.error("Search Error:", e);
-                status.innerText = `搜尋失敗: ${e.message}`;
-            }
+            } catch(e) { status.innerText = `搜尋失敗`; }
         }
         
         document.getElementById('search-spotify-btn').onclick = searchSpotify;
+        document.getElementById('close-search-btn').onclick = () => { if (currentAudio) { currentAudio.pause(); currentAudio = null; currentlyPlayingElement = null; } document.getElementById('spotify-results-view').classList.add('hidden'); document.getElementById('playlist-view').classList.remove('hidden'); document.getElementById('spotify-query').value = ''; };
+
+        let useWhiteTags = false; let bgStyle = { scale: 100, x: 50, y: 50 };
+        const posterContainer = document.getElementById('playlist-items'); const playlistUI = document.getElementById('playlist-list-ui');
         
-        document.getElementById('close-search-btn').onclick = () => {
-            if (currentAudio) { currentAudio.pause(); currentAudio = null; currentlyPlayingElement = null; }
-            document.getElementById('spotify-results-view').classList.add('hidden');
-            document.getElementById('playlist-view').classList.remove('hidden');
-            document.getElementById('spotify-query').value = '';
-        };
+        Sortable.create(posterContainer, { animation: 200, ghostClass: 'ghost', onEnd: () => syncOrderFromPoster() });
 
-        // --- 以下為 UI & 海報拖拉排版邏輯 ---
-        let useWhiteTags = false;
-        let bgStyle = { scale: 100, x: 50, y: 50 };
-        const posterContainer = document.getElementById('playlist-items');
-        const playlistUI = document.getElementById('playlist-list-ui');
-        
-        Sortable.create(posterContainer, { 
-            animation: 200, 
-            ghostClass: 'ghost', 
-            onEnd: () => syncOrderFromPoster() 
-        });
+        window.addSong = (name, album) => { const id = 's-' + Date.now() + Math.random().toString(36).substr(2, 4); const tag = document.createElement('div'); tag.className = `song-tag ${useWhiteTags ? 'tag-white' : ''}`; tag.setAttribute('data-id', id); tag.setAttribute('data-name', name); tag.setAttribute('data-album', album || ''); posterContainer.appendChild(tag); syncOrderFromPoster(); };
+        window.deleteSong = (id) => { const tag = posterContainer.querySelector(`[data-id="${id}"]`); if (tag) tag.remove(); syncOrderFromPoster(); };
 
-        window.addSong = (name, album) => {
-            const id = 's-' + Date.now() + Math.random().toString(36).substr(2, 4);
-            const tag = document.createElement('div');
-            tag.className = `song-tag ${useWhiteTags ? 'tag-white' : ''}`;
-            tag.setAttribute('data-id', id); tag.setAttribute('data-name', name); tag.setAttribute('data-album', album || '');
-            posterContainer.appendChild(tag);
-            syncOrderFromPoster();
-        };
-
-        window.deleteSong = (id) => {
-            const tag = posterContainer.querySelector(`[data-id="${id}"]`);
-            if (tag) tag.remove();
-            syncOrderFromPoster();
-        };
-
-        // ★★★ 強制靠右不換行的最新修改 ★★★
         function syncOrderFromPoster() {
-            updateIndices();
-            playlistUI.innerHTML = '';
+            updateIndices(); playlistUI.innerHTML = '';
             Array.from(posterContainer.children).forEach((tag, index) => {
-                const id = tag.getAttribute('data-id');
-                const name = tag.getAttribute('data-name');
-                const li = document.createElement('div');
-                
-                // 使用 w-full 確保寬度被父層限制住，加上 gap-2 確保文字跟叉叉保持距離，不論字多長都不會換行
+                const id = tag.getAttribute('data-id'); const name = tag.getAttribute('data-name'); const li = document.createElement('div');
                 li.className = 'flex items-center justify-between py-2 px-3 bg-zinc-800 rounded-lg border border-zinc-700/50 hover:border-zinc-600 transition-colors group w-full gap-2';
-                li.innerHTML = `
-                    <div class="flex-1 flex items-center min-w-0">
-                        <span class="text-[10px] text-zinc-500 w-5 flex-shrink-0 text-right pr-2">${index + 1}.</span>
-                        <span class="font-bold text-xs text-zinc-200 truncate select-none" title="${name}">${name}</span>
-                    </div>
-                    <button onclick="deleteSong('${id}')" class="flex-shrink-0 text-zinc-500 hover:text-red-400 p-1 opacity-50 group-hover:opacity-100 transition-all outline-none flex items-center justify-center" title="移除">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
-                    </button>
-                `;
+                li.innerHTML = `<div class="flex-1 flex items-center min-w-0"><span class="text-[10px] text-zinc-500 w-5 flex-shrink-0 text-right pr-2">${index + 1}.</span><span class="font-bold text-xs text-zinc-200 truncate select-none" title="${name}">${name}</span></div><button onclick="deleteSong('${id}')" class="flex-shrink-0 text-zinc-500 hover:text-red-400 p-1 opacity-50 group-hover:opacity-100 transition-all outline-none flex items-center justify-center" title="移除"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg></button>`;
                 playlistUI.appendChild(li);
             });
         }
 
         function updateIndices() {
-            let scale = 1.0;
-            document.documentElement.style.setProperty('--tag-scale', scale);
-            const titleH = document.getElementById('title-container').offsetHeight;
-            const availableH = 400 - 48 - titleH - 10;
-            posterContainer.style.height = `${availableH}px`;
-            
+            let scale = 1.0; document.documentElement.style.setProperty('--tag-scale', scale);
+            const titleH = document.getElementById('title-container').offsetHeight; const availableH = 400 - 48 - titleH - 10; posterContainer.style.height = `${availableH}px`;
             const items = Array.from(posterContainer.children);
             items.forEach((tag, i) => {
-                const name = tag.getAttribute('data-name');
-                const album = tag.getAttribute('data-album');
-                tag.className = `song-tag ${useWhiteTags ? 'tag-white' : ''}`;
-                tag.innerHTML = `
-                    <div class="tag-inner">
-                        <span class="tag-index">${i + 1}.</span>
-                        <div class="tag-content">
-                            <span class="tag-name">${name}</span>
-                            ${album ? `<span class="tag-album">(from ${album})</span>` : ''}
-                        </div>
-                    </div>`;
+                const name = tag.getAttribute('data-name'); const album = tag.getAttribute('data-album'); tag.className = `song-tag ${useWhiteTags ? 'tag-white' : ''}`;
+                tag.innerHTML = `<div class="tag-inner"><span class="tag-index">${i + 1}.</span><div class="tag-content"><span class="tag-name">${name}</span>${album ? `<span class="tag-album">(from ${album})</span>` : ''}</div></div>`;
             });
             setTimeout(() => checkOverflowAndShrink(availableH, 1.0), 0);
         }
 
         function checkOverflowAndShrink(availableHeight, currentScale) {
             if (currentScale < 0.4) return;
-            const containerRect = document.querySelector('.content-layer').getBoundingClientRect();
-            const limitLeft = containerRect.left + 24; 
-            let minLeft = Infinity;
-            Array.from(posterContainer.children).forEach(tag => {
-                const r = tag.getBoundingClientRect();
-                if (r.left < minLeft) minLeft = r.left;
-            });
-            if (minLeft < limitLeft) {
-                const nextScale = currentScale - 0.05;
-                document.documentElement.style.setProperty('--tag-scale', nextScale);
-                setTimeout(() => checkOverflowAndShrink(availableHeight, nextScale), 0);
-            }
+            const containerRect = document.querySelector('.content-layer').getBoundingClientRect(); const limitLeft = containerRect.left + 24; let minLeft = Infinity;
+            Array.from(posterContainer.children).forEach(tag => { const r = tag.getBoundingClientRect(); if (r.left < minLeft) minLeft = r.left; });
+            if (minLeft < limitLeft) { const nextScale = currentScale - 0.05; document.documentElement.style.setProperty('--tag-scale', nextScale); setTimeout(() => checkOverflowAndShrink(availableHeight, nextScale), 0); }
         }
 
-        async function saveToCloud(name, album) {
-            if (!db || !user) return;
-            const id = btoa(encodeURIComponent(name + album)).substring(0, 24);
-            try { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'song_library', id), { name, album: album || '', time: serverTimestamp() }, { merge: true }); } catch(e){}
-        }
-
-        function listenToLibrary() {
-            if (!db) return;
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'song_library'), (snap) => {
-                allLibrarySongs = snap.docs.map(doc => doc.data()).sort((a,b) => (b.time?.seconds||0) - (a.time?.seconds||0));
-                renderLibrary();
-            });
-        }
+        async function saveToCloud(name, album) { if (!db || !user) return; const id = btoa(encodeURIComponent(name + album)).substring(0, 24); try { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'song_library', id), { name, album: album || '', time: serverTimestamp() }, { merge: true }); } catch(e){} }
+        function listenToLibrary() { if (!db) return; onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'song_library'), (snap) => { allLibrarySongs = snap.docs.map(doc => doc.data()).sort((a,b) => (b.time?.seconds||0) - (a.time?.seconds||0)); renderLibrary(); }); }
 
         function renderLibrary(filter = '') {
-            const libUI = document.getElementById('library-list-ui');
-            libUI.innerHTML = '';
-            const filtered = allLibrarySongs.filter(s => s.name.toLowerCase().includes(filter) || (s.album||'').toLowerCase().includes(filter));
+            const libUI = document.getElementById('library-list-ui'); libUI.innerHTML = ''; const filtered = allLibrarySongs.filter(s => s.name.toLowerCase().includes(filter) || (s.album||'').toLowerCase().includes(filter));
             if(filtered.length===0) { libUI.innerHTML = '<div class="text-center text-zinc-500 py-10 text-xs">無結果</div>'; return; }
             filtered.forEach(d => {
-                const btn = document.createElement('div');
-                btn.className = 'py-2 px-3 bg-zinc-800/50 rounded-lg cursor-pointer hover:bg-zinc-700 border border-transparent hover:border-zinc-600 transition-all flex justify-between items-center group gap-2 w-full';
-                btn.innerHTML = `
-                    <div class="flex-1 min-w-0 pr-2">
-                        <div class="font-bold text-xs text-zinc-200 truncate" title="${d.name}">${d.name}</div>
-                        <div class="text-[10px] text-zinc-500 truncate mt-0.5" title="${d.album}">${d.album}</div>
-                    </div>
-                    <span class="text-green-500 font-bold opacity-0 group-hover:opacity-100 flex-shrink-0 px-2">+</span>
-                `;
-                btn.onclick = () => { addSong(d.name, d.album); saveToCloud(d.name, d.album); };
-                libUI.appendChild(btn);
+                const btn = document.createElement('div'); btn.className = 'py-2 px-3 bg-zinc-800/50 rounded-lg cursor-pointer hover:bg-zinc-700 border border-transparent hover:border-zinc-600 transition-all flex justify-between items-center group gap-2 w-full';
+                btn.innerHTML = `<div class="flex-1 min-w-0 pr-2"><div class="font-bold text-xs text-zinc-200 truncate" title="${d.name}">${d.name}</div><div class="text-[10px] text-zinc-500 truncate mt-0.5" title="${d.album}">${d.album}</div></div><span class="text-green-500 font-bold opacity-0 group-hover:opacity-100 flex-shrink-0 px-2">+</span>`;
+                btn.onclick = () => { addSong(d.name, d.album); saveToCloud(d.name, d.album); }; libUI.appendChild(btn);
             });
         }
 
         document.getElementById('library-search').oninput = (e) => renderLibrary(e.target.value.toLowerCase());
         document.getElementById('spotify-query').onkeypress = (e) => { if(e.key === 'Enter') document.getElementById('search-spotify-btn').click(); };
+        document.getElementById('nickname-input').oninput = (e) => { const lines = e.target.value.split('\n'); document.getElementById('title-container').innerHTML = `<div class="title-main">${lines[0]||''}</div><div class="title-sub">${lines[1]||''}</div>`; updateIndices(); };
 
-        document.getElementById('nickname-input').oninput = (e) => {
-            const lines = e.target.value.split('\n');
-            document.getElementById('title-container').innerHTML = `<div class="title-main">${lines[0]||''}</div><div class="title-sub">${lines[1]||''}</div>`;
-            updateIndices();
-        };
-
-        window.switchTab = (tab) => {
-            document.getElementById('panel-edit').classList.toggle('hidden', tab !== 'edit');
-            document.getElementById('panel-library').classList.toggle('hidden', tab !== 'library');
-            document.getElementById('tab-edit').className = `tab-btn pb-3 transition-all ${tab === 'edit' ? 'active text-white' : 'text-zinc-500'}`;
-            document.getElementById('tab-library').className = `tab-btn pb-3 transition-all ${tab === 'library' ? 'active text-white' : 'text-zinc-500'}`;
-        };
-        
+        window.switchTab = (tab) => { document.getElementById('panel-edit').classList.toggle('hidden', tab !== 'edit'); document.getElementById('panel-library').classList.toggle('hidden', tab !== 'library'); document.getElementById('tab-edit').className = `tab-btn pb-3 transition-all ${tab === 'edit' ? 'active text-white' : 'text-zinc-500'}`; document.getElementById('tab-library').className = `tab-btn pb-3 transition-all ${tab === 'library' ? 'active text-white' : 'text-zinc-500'}`; };
         window.toggleBulkModal = () => document.getElementById('bulk-modal').classList.toggle('hidden');
-        document.getElementById('bulk-import-btn').onclick = () => {
-            document.getElementById('bulk-input').value.split('\n').forEach(l => { const p=l.split(/[,\t]/); if(p[0]) { addSong(p[0].trim(), (p[1]||'').trim()); saveToCloud(p[0].trim(), (p[1]||'').trim()); } }); toggleBulkModal();
-        };
-        document.getElementById('add-custom-btn').onclick = () => {
-            const n = document.getElementById('custom-name'); const a = document.getElementById('custom-album');
-            if(n.value) { addSong(n.value, a.value); saveToCloud(n.value, a.value); n.value=''; a.value=''; }
-        };
+        document.getElementById('bulk-import-btn').onclick = () => { document.getElementById('bulk-input').value.split('\n').forEach(l => { const p=l.split(/[,\t]/); if(p[0]) { addSong(p[0].trim(), (p[1]||'').trim()); saveToCloud(p[0].trim(), (p[1]||'').trim()); } }); toggleBulkModal(); };
+        document.getElementById('add-custom-btn').onclick = () => { const n = document.getElementById('custom-name'); const a = document.getElementById('custom-album'); if(n.value) { addSong(n.value, a.value); saveToCloud(n.value, a.value); n.value=''; a.value=''; } };
         document.getElementById('clear-all-btn').onclick = () => { if(confirm('確定要清空海報上所有歌曲嗎?')) { posterContainer.innerHTML=''; syncOrderFromPoster(); } };
 
-        document.getElementById('bg-upload').onchange = (e) => {
-            const f = e.target.files[0]; if(f) { const r = new FileReader(); r.onload = (ev) => { document.getElementById('capture-zone').style.backgroundImage = `url(${ev.target.result})`; document.getElementById('capture-zone').style.color='white'; }; r.readAsDataURL(f); }
-        };
+        document.getElementById('bg-upload').onchange = (e) => { const f = e.target.files[0]; if(f) { const r = new FileReader(); r.onload = (ev) => { document.getElementById('capture-zone').style.backgroundImage = `url(${ev.target.result})`; document.getElementById('capture-zone').style.color='white'; }; r.readAsDataURL(f); } };
 
-        document.getElementById('bg-scale').oninput = (e) => { bgStyle.scale = e.target.value; updateBg(); };
-        document.getElementById('bg-x').oninput = (e) => { bgStyle.x = e.target.value; updateBg(); };
-        document.getElementById('bg-y').oninput = (e) => { bgStyle.y = e.target.value; updateBg(); };
+        document.getElementById('bg-scale').oninput = (e) => { bgStyle.scale = e.target.value; updateBg(); }; document.getElementById('bg-x').oninput = (e) => { bgStyle.x = e.target.value; updateBg(); }; document.getElementById('bg-y').oninput = (e) => { bgStyle.y = e.target.value; updateBg(); };
         function updateBg() { const z = document.getElementById('capture-zone'); z.style.backgroundSize = `${bgStyle.scale}%`; z.style.backgroundPosition = `${bgStyle.x}% ${bgStyle.y}%`; }
         document.getElementById('toggle-color').onclick = () => { const z = document.getElementById('capture-zone'); z.style.color = z.style.color === 'white' ? 'black' : 'white'; };
         document.getElementById('toggle-tag-color').onclick = () => { useWhiteTags = !useWhiteTags; updateIndices(); };
         
-        document.getElementById('export-btn').onclick = async () => {
-            const poster = document.getElementById('capture-zone'); const t = poster.style.transform; poster.style.transform = 'scale(1)';
-            const c = await html2canvas(poster, { scale: 3, useCORS: true }); poster.style.transform = t;
-            const a = document.createElement('a'); a.download = 'My_Setlist.png'; a.href = c.toDataURL(); a.click();
-        };
+        document.getElementById('export-btn').onclick = async () => { const poster = document.getElementById('capture-zone'); const t = poster.style.transform; poster.style.transform = 'scale(1)'; const c = await html2canvas(poster, { scale: 3, useCORS: true }); poster.style.transform = t; const a = document.createElement('a'); a.download = 'My_Setlist.png'; a.href = c.toDataURL(); a.click(); };
 
         initSpotifyState();
-        const autoScale = () => {
-            const w = document.getElementById('scale-wrapper');
-            const s = Math.min(1, (w.clientWidth - 40) / 592);
-            document.getElementById('capture-zone').style.transform = `scale(${s})`;
-            w.style.height = (400 * s + 20) + 'px';
-        };
+        const autoScale = () => { const w = document.getElementById('scale-wrapper'); const s = Math.min(1, (w.clientWidth - 40) / 592); document.getElementById('capture-zone').style.transform = `scale(${s})`; w.style.height = (400 * s + 20) + 'px'; };
         window.onresize = autoScale; window.onload = autoScale;
     </script>
 </body>
