@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>歌單海報產生器</title>
+    <title>歌單海報產生器 (極致修復版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -236,7 +236,6 @@
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'my-poster-app';
         let allLibrarySongs = [];
 
-        // Firebase Init
         if (firebaseConfig.apiKey) {
             try {
                 const app = initializeApp(firebaseConfig);
@@ -254,8 +253,6 @@
         }
 
         // --- Spotify 授權與錯誤處理機制 ---
-        
-        // 強制清除所有 Spotify 本地快取，用來處理 400/401 錯誤
         window.forceLogoutSpotify = () => {
             localStorage.removeItem('spotify_access_token');
             localStorage.removeItem('spotify_token_expiry');
@@ -317,9 +314,7 @@
         };
 
         async function handleSpotifyCode(code) {
-            // 先清理網址，防止使用者重新整理網頁時又送一次同樣的 code (會導致 400 錯誤)
             window.history.replaceState({}, document.title, window.location.pathname);
-            
             const verifier = localStorage.getItem('spotify_code_verifier');
             if (!verifier) return;
 
@@ -339,7 +334,6 @@
                     localStorage.setItem('spotify_token_expiry', Date.now() + (data.expires_in * 1000));
                     showSearchUI();
                 } else {
-                    // 如果 Token 交換失敗 (通常是 400 Bad Request)
                     console.warn("Spotify Token 交換失敗:", data);
                     alert("Spotify 登入驗證失敗。\n這通常是因為您重新整理了網頁，代碼已失效。\n\n請點擊「登入 Spotify」按鈕再試一次！\n錯誤細節: " + (data.error_description || "未知"));
                     forceLogoutSpotify();
@@ -371,12 +365,12 @@
             status.innerText = '搜尋中...';
 
             try {
-                const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track&limit=50`, {
+                // 移除 limit=50 參數，改用 API 預設的安全值，避免 "Invalid limit" 錯誤
+                const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track`, {
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
 
                 if (!res.ok) {
-                    // 嘗試捕捉 Spotify 具體的錯誤原因 (JSON)
                     let spotifyErrorMsg = res.statusText;
                     try {
                         const errData = await res.json();
@@ -388,8 +382,8 @@
                     if (res.status === 401) throw new Error('AUTH_EXPIRED');
                     if (res.status === 403) throw new Error('FORBIDDEN_DEV_MODE');
                     
-                    // 拋出包含具體原因的錯誤
-                    throw new Error(`400_BAD_REQUEST|${spotifyErrorMsg}`);
+                    // 其他 API 錯誤（包含 Invalid limit 等），不強制登出
+                    throw new Error(`API_ERROR|${spotifyErrorMsg}`);
                 }
 
                 const data = await res.json();
@@ -414,14 +408,17 @@
             } catch(e) { 
                 console.error("Search Error:", e);
                 
-                if (e.message === 'AUTH_EXPIRED' || e.message.startsWith('400_BAD_REQUEST')) {
-                    // 遇到 400 或 401，自動清除快取，讓使用者重新登入
-                    const specificMsg = e.message.includes('|') ? e.message.split('|')[1] : '認證錯誤';
-                    alert(`⚠️ 偵測到授權狀態異常 (${specificMsg})。\n\n系統已自動為您清除舊的登入資料，請您點擊「登入 Spotify」重新獲取授權！`);
+                if (e.message === 'AUTH_EXPIRED') {
+                    alert(`⚠️ 登入狀態已過期，請重新登入！`);
                     forceLogoutSpotify();
                 } else if (e.message === 'FORBIDDEN_DEV_MODE') {
                     alert("⚠️ Spotify API 拒絕存取 (403 Forbidden)。\n\n您的 Spotify App 處於「開發模式」，請確保您登入的 Spotify 帳號 Email 有被加入到 Dashboard 的 User Management 白名單中。");
                     status.innerText = '錯誤：403 帳號未授權';
+                } else if (e.message.startsWith('API_ERROR')) {
+                    // API 參數錯誤，顯示錯誤但不強制登出
+                    const specificMsg = e.message.split('|')[1];
+                    alert(`⚠️ Spotify API 發生錯誤 (${specificMsg})。\n這通常是系統參數問題。請嘗試換個關鍵字搜尋。`);
+                    status.innerText = '錯誤：' + specificMsg;
                 } else {
                     status.innerText = '搜尋錯誤: ' + e.message;
                 }
