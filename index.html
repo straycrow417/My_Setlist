@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>歌單海報產生器 (含試聽功能)</title>
+    <title>歌單海報產生器</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -238,7 +238,7 @@
         
         // 音訊播放器全域變數
         let currentAudio = null;
-        let currentlyPlayingUrl = null;
+        let currentlyPlayingElement = null;
 
         if (firebaseConfig.apiKey) {
             try {
@@ -267,9 +267,7 @@
         function getValidToken() {
             const token = localStorage.getItem('spotify_access_token');
             const expiry = localStorage.getItem('spotify_token_expiry');
-            if (token && expiry && Date.now() < parseInt(expiry)) {
-                return token;
-            }
+            if (token && expiry && Date.now() < parseInt(expiry)) return token;
             return null;
         }
 
@@ -277,7 +275,6 @@
             const urlParams = new URLSearchParams(window.location.search);
             const code = urlParams.get('code');
             if (code) { handleSpotifyCode(code); return; }
-            
             if (getValidToken()) showSearchUI();
             else showLoginUI();
         }
@@ -328,43 +325,37 @@
             });
 
             try {
-                const res = await fetch('https://accounts.spotify.com/api/token', {
-                    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body
-                });
+                const res = await fetch('https://accounts.spotify.com/api/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body });
                 const data = await res.json();
-                
                 if (data.access_token) {
                     localStorage.setItem('spotify_access_token', data.access_token);
                     localStorage.setItem('spotify_token_expiry', Date.now() + (data.expires_in * 1000));
                     showSearchUI();
                 } else {
-                    console.warn("Spotify Token 交換失敗:", data);
-                    alert("Spotify 登入驗證失敗。\n這通常是因為您重新整理了網頁，代碼已失效。\n\n請點擊「登入 Spotify」按鈕再試一次！\n錯誤細節: " + (data.error_description || "未知"));
                     forceLogoutSpotify();
                 }
-            } catch (e) { 
-                console.error("Token Fetch Error:", e); 
-                forceLogoutSpotify();
-            }
+            } catch (e) { forceLogoutSpotify(); }
         }
 
-        // 歌曲試聽功能
-        window.togglePreview = (e, url, element) => {
-            e.stopPropagation(); // 阻止點擊事件冒泡到父層
+        // --- 核心：含 iTunes 備援機制的試聽功能 ---
+        window.togglePreview = async (e, element) => {
+            e.stopPropagation(); 
             
-            if (!url || url === 'null') {
-                alert('版權限制，Spotify 未提供此歌曲的預覽音檔 😢');
-                return;
-            }
-
-            // 尋找所有的播放圖示並重置回原狀
-            document.querySelectorAll('.play-icon').forEach(el => {
-                if(el.dataset.hasUrl === 'true') el.innerText = '▶';
-            });
+            const previewUrl = element.getAttribute('data-preview');
+            const fallbackQuery = element.getAttribute('data-fallback');
+            const spotifyUrl = element.getAttribute('data-spotify');
             const iconEl = element.querySelector('.play-icon');
 
-            // 如果點擊的是正在播放的歌曲，則暫停
-            if (currentAudio && currentlyPlayingUrl === url) {
+            // 尋找所有的播放圖示並重置回原狀 (排除目前點擊的)
+            document.querySelectorAll('.play-icon').forEach(el => {
+                if (el !== iconEl) el.innerText = '▶';
+            });
+
+            // 判斷是否已經有解析成功並快取的備用 URL
+            let finalUrl = element.getAttribute('data-resolved-url') || previewUrl;
+
+            // 如果點擊的是正在播放的歌曲，則處理暫停/繼續
+            if (currentAudio && currentlyPlayingElement === element) {
                 if (!currentAudio.paused) {
                     currentAudio.pause();
                     iconEl.innerText = '▶';
@@ -375,20 +366,52 @@
                 return;
             }
 
-            // 播放新的歌曲
-            if (currentAudio) {
-                currentAudio.pause();
+            // 【備援機制】如果 Spotify 沒有提供 URL，我們去戳 Apple Music API 找
+            if (!finalUrl || finalUrl === 'null' || finalUrl === '') {
+                iconEl.innerText = '⏳'; // 顯示讀取中
+                try {
+                    // 使用 iTunes Search API (不需 Key, 支援跨域)
+                    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(fallbackQuery)}&media=music&limit=1`);
+                    const data = await res.json();
+                    
+                    if (data.results && data.results.length > 0 && data.results[0].previewUrl) {
+                        finalUrl = data.results[0].previewUrl;
+                        element.setAttribute('data-resolved-url', finalUrl); // 快取起來下次就不用查了
+                    } else {
+                        // 連 Apple 都沒有這首歌
+                        iconEl.innerText = '▶';
+                        if(confirm('Spotify 與 Apple Music 皆未提供此歌曲的預覽音檔。\n是否要直接開啟 Spotify 網頁聆聽完整版？')) {
+                            window.open(spotifyUrl, '_blank');
+                        }
+                        return;
+                    }
+                } catch (err) {
+                    console.error("iTunes API error:", err);
+                    iconEl.innerText = '▶';
+                    alert('獲取預覽音檔失敗，請確認網路連線。');
+                    return;
+                }
             }
 
-            currentAudio = new Audio(url);
+            // 播放音檔
+            if (currentAudio) currentAudio.pause();
+
+            currentAudio = new Audio(finalUrl);
             currentAudio.volume = 0.5; // 音量適中
-            currentlyPlayingUrl = url;
-            currentAudio.play();
-            iconEl.innerText = '⏸';
+            currentlyPlayingElement = element;
+            
+            iconEl.innerText = '⏳'; // 緩衝中
+            
+            currentAudio.play().then(() => {
+                iconEl.innerText = '⏸';
+            }).catch(err => {
+                console.error("Playback error:", err);
+                iconEl.innerText = '▶';
+            });
 
             currentAudio.onended = () => {
                 iconEl.innerText = '▶';
-                currentlyPlayingUrl = null;
+                currentlyPlayingElement = null;
             };
         };
 
@@ -397,11 +420,7 @@
             if (!q) return;
 
             const token = getValidToken();
-            if (!token) {
-                alert("登入狀態已過期，請重新登入！");
-                forceLogoutSpotify();
-                return;
-            }
+            if (!token) { alert("登入狀態已過期，請重新登入！"); forceLogoutSpotify(); return; }
 
             document.getElementById('playlist-view').classList.add('hidden');
             const resultsView = document.getElementById('spotify-results-view');
@@ -417,19 +436,7 @@
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
 
-                if (!res.ok) {
-                    let spotifyErrorMsg = res.statusText;
-                    try {
-                        const errData = await res.json();
-                        if (errData.error && errData.error.message) {
-                            spotifyErrorMsg = errData.error.message;
-                        }
-                    } catch (errJson) { }
-                    
-                    if (res.status === 401) throw new Error('AUTH_EXPIRED');
-                    if (res.status === 403) throw new Error('FORBIDDEN_DEV_MODE');
-                    throw new Error(`API_ERROR|${spotifyErrorMsg}`);
-                }
+                if (!res.ok) throw new Error('API_ERROR');
 
                 const data = await res.json();
                 status.innerText = `結果：${data.tracks.items.length} 筆`;
@@ -438,20 +445,19 @@
                     const div = document.createElement('div');
                     div.className = 'flex justify-between items-center p-2 hover:bg-zinc-800 rounded border-b border-zinc-800 last:border-0 group/item';
                     
-                    // 抓取專輯封面 (通常 [2] 是最小尺寸，若無則降級)
                     const images = track.album.images;
                     const imgUrl = images.length > 0 ? images[images.length - 1].url : '';
-                    const previewUrl = track.preview_url;
+                    const previewUrl = track.preview_url || '';
+                    const spotifyUrl = track.external_urls.spotify || '';
                     
-                    // 根據是否有預覽音檔設定圖示
-                    const playIcon = previewUrl ? '▶' : '🔇';
-                    const hasUrlFlag = previewUrl ? 'true' : 'false';
+                    // 備援搜尋關鍵字: 歌名 + 第一個歌手名
+                    const fallbackQuery = `${track.name} ${track.artists[0].name}`;
 
                     div.innerHTML = `
-                        <div class="relative w-10 h-10 flex-shrink-0 mr-3 cursor-pointer group/img" onclick="togglePreview(event, '${previewUrl}', this)">
+                        <div class="relative w-10 h-10 flex-shrink-0 mr-3 cursor-pointer group/img preview-trigger">
                             ${imgUrl ? `<img src="${imgUrl}" class="w-full h-full object-cover rounded shadow-sm" alt="cover">` : `<div class="w-full h-full bg-zinc-700 rounded"></div>`}
                             <div class="absolute inset-0 bg-black/60 flex items-center justify-center rounded opacity-0 group-hover/img:opacity-100 transition-opacity">
-                                <span class="text-white text-xs play-icon" data-has-url="${hasUrlFlag}">${playIcon}</span>
+                                <span class="text-white text-xs play-icon">▶</span>
                             </div>
                         </div>
                         <div class="truncate mr-2 flex-1 cursor-pointer" onclick="addSong('${track.name.replace(/'/g, "\\'")}', '${track.album.name.replace(/'/g, "\\'")}'); saveToCloud('${track.name.replace(/'/g, "\\'")}', '${track.album.name.replace(/'/g, "\\'")}');">
@@ -460,42 +466,36 @@
                         </div>
                         <button class="text-green-500 font-bold text-lg px-2 hover:scale-110 transition-transform" onclick="addSong('${track.name.replace(/'/g, "\\'")}', '${track.album.name.replace(/'/g, "\\'")}'); saveToCloud('${track.name.replace(/'/g, "\\'")}', '${track.album.name.replace(/'/g, "\\'")}');">+</button>
                     `;
+                    
+                    // 綁定事件並將資料寫入 Dataset 以防止引號跳脫問題
+                    const trigger = div.querySelector('.preview-trigger');
+                    trigger.setAttribute('data-preview', previewUrl);
+                    trigger.setAttribute('data-fallback', fallbackQuery);
+                    trigger.setAttribute('data-spotify', spotifyUrl);
+                    trigger.onclick = (e) => togglePreview(e, trigger);
+
                     resultsList.appendChild(div);
                 });
             } catch(e) { 
                 console.error("Search Error:", e);
-                
-                if (e.message === 'AUTH_EXPIRED') {
-                    alert(`⚠️ 登入狀態已過期，請重新登入！`);
-                    forceLogoutSpotify();
-                } else if (e.message === 'FORBIDDEN_DEV_MODE') {
-                    alert("⚠️ Spotify API 拒絕存取 (403 Forbidden)。\n\n您的 Spotify App 處於「開發模式」，請確保您登入的 Spotify 帳號 Email 有被加入到 Dashboard 的 User Management 白名單中。");
-                    status.innerText = '錯誤：403 帳號未授權';
-                } else if (e.message.startsWith('API_ERROR')) {
-                    const specificMsg = e.message.split('|')[1];
-                    alert(`⚠️ Spotify API 發生錯誤 (${specificMsg})。\n這通常是系統參數問題。請嘗試換個關鍵字搜尋。`);
-                    status.innerText = '錯誤：' + specificMsg;
-                } else {
-                    status.innerText = '搜尋錯誤: ' + e.message;
-                }
+                status.innerText = '搜尋發生錯誤';
             }
         }
         
         document.getElementById('search-spotify-btn').onclick = searchSpotify;
         
-        // 關閉搜尋畫面時，自動暫停音樂
         document.getElementById('close-search-btn').onclick = () => {
             if (currentAudio) {
                 currentAudio.pause();
                 currentAudio = null;
-                currentlyPlayingUrl = null;
+                currentlyPlayingElement = null;
             }
             document.getElementById('spotify-results-view').classList.add('hidden');
             document.getElementById('playlist-view').classList.remove('hidden');
             document.getElementById('spotify-query').value = '';
         };
 
-        // --- UI & Logic ---
+        // --- 以下為 UI & 海報拖拉排版邏輯 ---
         let useWhiteTags = false;
         let bgStyle = { scale: 100, x: 50, y: 50 };
         const posterContainer = document.getElementById('playlist-items');
