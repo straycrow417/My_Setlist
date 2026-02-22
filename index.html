@@ -127,15 +127,14 @@
                     <div class="space-y-3">
                         <p class="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">底圖調整</p>
                         <div class="space-y-3 pt-1">
-                            <div class="flex flex-col gap-1"><div class="flex justify-between text-[9px] text-zinc-400"><span>底圖縮放調整</span><span id="val-scale"></span></div><input type="range" id="bg-scale" min="100" max="300" value="100"></div>
-                            <div class="flex flex-col gap-1"><div class="flex justify-between text-[9px] text-zinc-400"><span>底圖水平調整</span><span id="val-x"></span></div><input type="range" id="bg-x" min="0" max="100" value="50"></div>
-                            <div class="flex flex-col gap-1"><div class="flex justify-between text-[9px] text-zinc-400"><span>底圖垂直調整</span><span id="val-y"></span></div><input type="range" id="bg-y" min="0" max="100" value="50"></div>
+                            <div class="flex flex-col gap-1"><div class="flex justify-between text-[9px] text-zinc-400"><span>底圖縮放調整</span><span id="val-scale">100%</span></div><input type="range" id="bg-scale" min="100" max="300" value="100"></div>
+                            <div class="flex flex-col gap-1"><div class="flex justify-between text-[9px] text-zinc-400"><span>底圖水平調整</span><span id="val-x">50%</span></div><input type="range" id="bg-x" min="0" max="100" value="50"></div>
+                            <div class="flex flex-col gap-1"><div class="flex justify-between text-[9px] text-zinc-400"><span>底圖垂直調整</span><span id="val-y">50%</span></div><input type="range" id="bg-y" min="0" max="100" value="50"></div>
                         </div>
                     </div>
                     <div class="flex flex-col justify-between space-y-3">
-                        <!-- 加入使用說明的資訊按鈕 -->
                         <div class="flex justify-between items-center">
-                            <p class="text-[10px] text-zinc-400 font-bold uppercase tracking-widest m-0">檔案與輸出</p>
+                            <p class="text-[10px] text-zinc-400 font-bold uppercase tracking-widest m-0">輸出與檔案</p>
                             <button onclick="openTutorial()" class="text-zinc-400 hover:text-white transition-colors outline-none flex items-center gap-1" title="查看使用說明">
                                 <span class="text-[10px] font-bold">使用說明</span>
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -161,23 +160,17 @@
             
             <div id="panel-edit" class="flex flex-col flex-1 overflow-hidden relative">
                 <div class="mb-4 space-y-2">
-                    <div id="spotify-login-area">
-                        <button id="login-spotify-btn" class="w-full bg-[#1DB954] hover:bg-[#1ed760] text-black font-bold py-2.5 rounded-lg text-xs flex items-center justify-center gap-2">
-                            <span>登入 Spotify 搜尋歌曲</span>
-                        </button>
-                    </div>
                     
-                    <div id="spotify-search-area" class="hidden flex flex-col gap-2">
+                    <div id="music-search-area" class="flex flex-col gap-2">
                         <div class="flex gap-2">
-                            <input type="text" id="spotify-query" placeholder="搜尋 Spotify 歌曲..." class="flex-1 bg-zinc-800 p-2.5 rounded-lg text-xs border border-zinc-700 outline-none focus:border-[#1DB954]">
-                            <button id="search-spotify-btn" class="bg-zinc-700 hover:bg-zinc-600 text-white px-4 rounded-lg text-xs flex-shrink-0">搜尋</button>
+                            <input type="text" id="music-query" placeholder="搜尋歌曲..." class="flex-1 bg-zinc-800 p-2.5 rounded-lg text-xs border border-zinc-700 outline-none focus:border-[#fa243c]">
+                            <button id="search-music-btn" class="bg-zinc-700 hover:bg-zinc-600 text-white px-4 rounded-lg text-xs flex-shrink-0">搜尋</button>
                         </div>
-                        <button onclick="forceLogoutSpotify()" class="text-[10px] text-zinc-500 hover:text-red-400 text-right underline decoration-dotted">登出 / 清除登入快取</button>
                     </div>
 
                     <details class="group border border-zinc-800 rounded-lg bg-zinc-800/30">
                         <summary class="cursor-pointer p-2 text-[10px] text-zinc-400 select-none flex justify-between items-center">
-                            <span>手動輸入</span>
+                            <span>手動輸入歌曲</span>
                             <span class="text-zinc-600 group-open:rotate-180 transition-transform">▼</span>
                         </summary>
                         <div class="p-3 pt-0 grid grid-cols-2 gap-2 mt-2">
@@ -197,12 +190,12 @@
                         </div>
                     </div>
 
-                    <div id="spotify-results-view" class="hidden absolute inset-0 bg-zinc-900 z-50 flex flex-col h-full">
+                    <div id="music-results-view" class="hidden absolute inset-0 bg-zinc-900 z-50 flex flex-col h-full">
                         <div class="flex justify-between items-center p-2 bg-zinc-800 border-b border-zinc-700">
                             <span id="search-status" class="text-xs text-zinc-400 truncate pr-2">搜尋結果</span>
-                            <button id="close-search-btn" class="flex-shrink-0 text-xs bg-zinc-700 px-3 py-1 rounded hover:bg-zinc-600 text-white">返回歌單列表</button>
+                            <button id="close-search-btn" class="flex-shrink-0 text-xs bg-zinc-700 px-3 py-1 rounded hover:bg-zinc-600 text-white">返回</button>
                         </div>
-                        <div id="spotify-results-list" class="flex-1 overflow-y-auto p-2 space-y-1.5 no-scrollbar"></div>
+                        <div id="music-results-list" class="flex-1 overflow-y-auto p-2 space-y-1.5 no-scrollbar"></div>
                     </div>
                 </div>
             </div>
@@ -264,18 +257,10 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // ==========================================
-        // ★★★ 使用說明圖片設定區 ★★★
-        // 請將您上傳到雲端的圖片網址填入下方陣列中。
-        // 可以無限增加，只要用逗號分隔並用引號包起來即可。
-        // ==========================================
         const tutorialImages = [
-            "https://duk.tw/JINt0u.png", // 第 1 頁 (這是範例圖片，請替換)
-            "https://duk.tw/354kpZ.png", // 第 2 頁 (這是範例圖片，請替換)
-            "https://duk.tw/MB8vtY.png",  // 第 3 頁 (這是範例圖片，請替換)
-			"https://duk.tw/Re53pq.png", // 第 4 頁 (這是範例圖片，請替換)
-            "https://duk.tw/JvkNtx.png", // 第 5 頁 (這是範例圖片，請替換)
-            "https://duk.tw/OaJH5a.png",  // 第 6 頁 (這是範例圖片，請替換)
+            "https://duk.tw/JINt0u.png", 
+            "https://duk.tw/354kpZ.png", 
+            "https://duk.tw/MB8vtY.png"  
         ];
 
         let currentTutorialStep = 0;
@@ -313,7 +298,6 @@
             const nextBtn = document.getElementById('tut-next');
             const counter = document.getElementById('tut-counter');
 
-            // 加入漸變效果
             imgEl.style.opacity = '0';
             setTimeout(() => {
                 imgEl.src = tutorialImages[currentTutorialStep];
@@ -325,7 +309,6 @@
             nextBtn.disabled = currentTutorialStep === tutorialImages.length - 1;
         }
 
-        // 支援鍵盤左右鍵切換和 ESC 關閉
         document.addEventListener('keydown', (e) => {
             const modal = document.getElementById('tutorial-modal');
             if(!modal.classList.contains('hidden')) {
@@ -335,17 +318,12 @@
             }
         });
 
-
-        // === 原本的 Firebase 與 Spotify 邏輯 ===
         const manualConfig = { apiKey: "AIzaSyDhP9JryXni2a6SOka73Lgng80DBwg0esI",
   authDomain: "my-setlist-25d7a.firebaseapp.com",
   projectId: "my-setlist-25d7a",
   storageBucket: "my-setlist-25d7a.firebasestorage.app",
   messagingSenderId: "723230839513",
   appId: "1:723230839513:web:307d5221fada859e6f24c8" };
-        const spotifyClientId = "1ed974a9278b46a0af69f3e112977dc8"; // ★★★ 請填入你的 Spotify Client ID ★★★
-        const redirectUri = window.location.origin + window.location.pathname;
-
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : manualConfig;
         let db = null, auth = null, user = null;
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'my-poster-app';
@@ -367,62 +345,107 @@
             } catch(e) { console.error("FB Init Error", e); }
         }
 
-        window.forceLogoutSpotify = () => { localStorage.removeItem('spotify_access_token'); localStorage.removeItem('spotify_token_expiry'); localStorage.removeItem('spotify_code_verifier'); showLoginUI(); };
-        function getValidToken() { const token = localStorage.getItem('spotify_access_token'); const expiry = localStorage.getItem('spotify_token_expiry'); if (token && expiry && Date.now() < parseInt(expiry)) return token; return null; }
-        function initSpotifyState() { const urlParams = new URLSearchParams(window.location.search); const code = urlParams.get('code'); if (code) { handleSpotifyCode(code); return; } if (getValidToken()) showSearchUI(); else showLoginUI(); }
-        function showLoginUI() { document.getElementById('spotify-login-area').classList.remove('hidden'); document.getElementById('spotify-search-area').classList.add('hidden'); document.getElementById('spotify-results-view').classList.add('hidden'); document.getElementById('playlist-view').classList.remove('hidden'); }
-        function showSearchUI() { document.getElementById('spotify-login-area').classList.add('hidden'); document.getElementById('spotify-search-area').classList.remove('hidden'); }
-        function generateRandomString(length) { let text = ''; const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'; for (let i = 0; i < length; i++) text += possible.charAt(Math.floor(Math.random() * possible.length)); return text; }
-        async function generateCodeChallenge(v) { const d = await window.crypto.subtle.digest('SHA-256', new TextEncoder().encode(v)); return btoa(String.fromCharCode.apply(null, [...new Uint8Array(d)])).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
-
-        document.getElementById('login-spotify-btn').onclick = async () => {
-            if (!spotifyClientId) { alert("請先填入 Spotify Client ID"); return; }
-            const verifier = generateRandomString(128); const challenge = await generateCodeChallenge(verifier); localStorage.setItem('spotify_code_verifier', verifier);
-            const args = new URLSearchParams({ response_type: 'code', client_id: spotifyClientId, scope: 'user-read-private', redirect_uri: redirectUri, code_challenge_method: 'S256', code_challenge: challenge });
-            window.location.href = 'https://accounts.spotify.com/authorize?' + args;
-        };
-
-        async function handleSpotifyCode(code) {
-            window.history.replaceState({}, document.title, window.location.pathname); const verifier = localStorage.getItem('spotify_code_verifier'); if (!verifier) return;
-            const body = new URLSearchParams({ grant_type: 'authorization_code', code: code, redirect_uri: redirectUri, client_id: spotifyClientId, code_verifier: verifier });
-            try { const res = await fetch('https://accounts.spotify.com/api/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: body }); const data = await res.json(); if (data.access_token) { localStorage.setItem('spotify_access_token', data.access_token); localStorage.setItem('spotify_token_expiry', Date.now() + (data.expires_in * 1000)); showSearchUI(); } else { forceLogoutSpotify(); } } catch (e) { forceLogoutSpotify(); }
-        }
-
         window.togglePreview = async (e, element) => {
-            e.stopPropagation(); const previewUrl = element.getAttribute('data-preview'); const fallbackQuery = element.getAttribute('data-fallback'); const spotifyUrl = element.getAttribute('data-spotify'); const iconEl = element.querySelector('.play-icon');
+            e.stopPropagation(); 
+            const previewUrl = element.getAttribute('data-preview'); 
+            const appleUrl = element.getAttribute('data-apple'); 
+            const iconEl = element.querySelector('.play-icon');
+            
             document.querySelectorAll('.play-icon').forEach(el => { if (el !== iconEl) el.innerText = '▶'; });
-            let finalUrl = element.getAttribute('data-resolved-url') || previewUrl;
-            if (currentAudio && currentlyPlayingElement === element) { if (!currentAudio.paused) { currentAudio.pause(); iconEl.innerText = '▶'; } else { currentAudio.play(); iconEl.innerText = '⏸'; } return; }
-            if (!finalUrl || finalUrl === 'null' || finalUrl === '') {
-                iconEl.innerText = '⏳'; 
-                try { const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(fallbackQuery)}&media=music&limit=1`); const data = await res.json(); if (data.results && data.results.length > 0 && data.results[0].previewUrl) { finalUrl = data.results[0].previewUrl; element.setAttribute('data-resolved-url', finalUrl); } else { iconEl.innerText = '▶'; if(confirm('Spotify 與 Apple Music 皆未提供此歌曲預覽。\n是否前往 Spotify 聆聽完整版？')) window.open(spotifyUrl, '_blank'); return; } } catch (err) { iconEl.innerText = '▶'; alert('獲取預覽失敗，請確認網路。'); return; }
+            
+            if (currentAudio && currentlyPlayingElement === element) { 
+                if (!currentAudio.paused) { currentAudio.pause(); iconEl.innerText = '▶'; } 
+                else { currentAudio.play(); iconEl.innerText = '⏸'; } 
+                return; 
             }
-            if (currentAudio) currentAudio.pause(); currentAudio = new Audio(finalUrl); currentAudio.volume = 0.5; currentlyPlayingElement = element; iconEl.innerText = '⏳';
-            currentAudio.play().then(() => { iconEl.innerText = '⏸'; }).catch(err => { iconEl.innerText = '▶'; }); currentAudio.onended = () => { iconEl.innerText = '▶'; currentlyPlayingElement = null; };
+            
+            if (!previewUrl || previewUrl === 'null' || previewUrl === '') {
+                iconEl.innerText = '▶'; 
+                if(confirm('Apple Music 暫未提供此歌曲預覽。\n是否前往 Apple Music 頁面查看？')) window.open(appleUrl, '_blank'); 
+                return; 
+            }
+            
+            if (currentAudio) currentAudio.pause(); 
+            currentAudio = new Audio(previewUrl); 
+            currentAudio.volume = 0.5; 
+            currentlyPlayingElement = element; 
+            iconEl.innerText = '⏳';
+            
+            currentAudio.play().then(() => { iconEl.innerText = '⏸'; }).catch(err => { iconEl.innerText = '▶'; }); 
+            currentAudio.onended = () => { iconEl.innerText = '▶'; currentlyPlayingElement = null; };
         };
 
-        async function searchSpotify() {
-            const q = document.getElementById('spotify-query').value.trim(); if (!q) return;
-            const token = getValidToken(); if (!token) { alert("Spotify 登入狀態已過期，請重新登入！"); forceLogoutSpotify(); return; }
-            document.getElementById('playlist-view').classList.add('hidden'); const resultsView = document.getElementById('spotify-results-view'); const resultsList = document.getElementById('spotify-results-list'); const status = document.getElementById('search-status');
-            resultsView.classList.remove('hidden'); resultsList.innerHTML = ''; status.innerText = '搜尋中...';
+        async function searchAppleMusic() {
+            const q = document.getElementById('music-query').value.trim(); 
+            if (!q) return;
+            
+            document.getElementById('playlist-view').classList.add('hidden'); 
+            const resultsView = document.getElementById('music-results-view'); 
+            const resultsList = document.getElementById('music-results-list'); 
+            const status = document.getElementById('search-status');
+            
+            resultsView.classList.remove('hidden'); 
+            resultsList.innerHTML = ''; 
+            status.innerText = '搜尋中...';
+            
             try {
-                const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(q)}&type=track`, { headers: { 'Authorization': 'Bearer ' + token } });
-                if (res.status === 401 || res.status === 403) { alert('授權異常，已為您清除舊登入資料，請重新登入！'); forceLogoutSpotify(); return; }
-                if (!res.ok) throw new Error('API_ERROR');
-                const data = await res.json(); status.innerText = `結果：${data.tracks.items.length} 筆`;
-                data.tracks.items.forEach(track => {
-                    const div = document.createElement('div'); div.className = 'flex justify-between items-center py-1.5 px-2 hover:bg-zinc-800 rounded-lg border border-transparent hover:border-zinc-700/50 transition-colors group/item';
-                    const imgUrl = track.album.images.length > 0 ? track.album.images[track.album.images.length - 1].url : ''; const fallbackQuery = `${track.name} ${track.artists[0].name}`;
-                    div.innerHTML = `<div class="relative w-9 h-9 flex-shrink-0 mr-3 cursor-pointer group/img preview-trigger">${imgUrl ? `<img src="${imgUrl}" class="w-full h-full object-cover rounded shadow-sm" alt="cover">` : `<div class="w-full h-full bg-zinc-700 rounded"></div>`}<div class="absolute inset-0 bg-black/60 flex items-center justify-center rounded opacity-0 group-hover/img:opacity-100 transition-opacity"><span class="text-white text-xs play-icon">▶</span></div></div><div class="truncate mr-2 flex-1 min-w-0 cursor-pointer" onclick="addSong('${track.name.replace(/'/g, "\\'")}', '${track.album.name.replace(/'/g, "\\'")}'); saveToCloud('${track.name.replace(/'/g, "\\'")}', '${track.album.name.replace(/'/g, "\\'")}');"><div class="text-xs font-bold text-zinc-200 truncate">${track.name}</div><div class="text-[10px] text-zinc-500 truncate">${track.artists[0].name} - ${track.album.name}</div></div><button class="text-green-500 font-bold text-lg px-2 flex-shrink-0 hover:scale-110 transition-transform" onclick="addSong('${track.name.replace(/'/g, "\\'")}', '${track.album.name.replace(/'/g, "\\'")}'); saveToCloud('${track.name.replace(/'/g, "\\'")}', '${track.album.name.replace(/'/g, "\\'")}');">+</button>`;
-                    const trigger = div.querySelector('.preview-trigger'); trigger.setAttribute('data-preview', track.preview_url || ''); trigger.setAttribute('data-fallback', fallbackQuery); trigger.setAttribute('data-spotify', track.external_urls.spotify || ''); trigger.onclick = (e) => togglePreview(e, trigger);
-                    resultsList.appendChild(div);
-                });
-            } catch(e) { status.innerText = `搜尋失敗`; }
+                const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&entity=song&limit=25&country=TW&lang=zh_tw`);
+                const data = await res.json(); 
+                
+                status.innerText = `結果：${data.results.length} 筆`;
+                
+                if (data.results && data.results.length > 0) {
+                    data.results.forEach(track => {
+                        const div = document.createElement('div'); 
+                        div.className = 'flex justify-between items-center py-1.5 px-2 hover:bg-zinc-800 rounded-lg border border-transparent hover:border-zinc-700/50 transition-colors group/item';
+                        
+                        const imgUrl = track.artworkUrl100 || ''; 
+                        const songName = track.trackName || '未知歌曲';
+                        const originalAlbumName = track.collectionName || track.artistName || '未知專輯';
+                        
+                        // 產生乾淨的專輯名稱（海報上使用），移除 Special/Deluxe Edition, Single, EP 等字樣（更寬鬆地匹配，不限於字尾）
+                        let cleanAlbumName = originalAlbumName
+                            .replace(/\s*[\(\[-]?\s*(Special|Deluxe)\s*Edition\s*[\)\]]?\s*/gi, '')
+                            .replace(/\s*-\s*(Single|EP|E\.P\.)\s*$/gi, '')
+                            .trim();
+                        
+                        div.innerHTML = `
+                            <div class="relative w-9 h-9 flex-shrink-0 mr-3 cursor-pointer group/img preview-trigger">
+                                ${imgUrl ? `<img src="${imgUrl}" class="w-full h-full object-cover rounded shadow-sm" alt="cover">` : `<div class="w-full h-full bg-zinc-700 rounded"></div>`}
+                                <div class="absolute inset-0 bg-black/60 flex items-center justify-center rounded opacity-0 group-hover/img:opacity-100 transition-opacity">
+                                    <span class="text-white text-xs play-icon">▶</span>
+                                </div>
+                            </div>
+                            <div class="truncate mr-2 flex-1 min-w-0 cursor-pointer" onclick="addSong('${songName.replace(/'/g, "\\'")}', '${cleanAlbumName.replace(/'/g, "\\'")}'); saveToCloud('${songName.replace(/'/g, "\\'")}', '${cleanAlbumName.replace(/'/g, "\\'")}');">
+                                <div class="text-xs font-bold text-zinc-200 truncate">${songName}</div>
+                                <div class="text-[10px] text-zinc-500 truncate">${track.artistName} - ${originalAlbumName}</div>
+                            </div>
+                            <button class="text-green-500 font-bold text-lg px-2 flex-shrink-0 hover:scale-110 transition-transform" onclick="addSong('${songName.replace(/'/g, "\\'")}', '${cleanAlbumName.replace(/'/g, "\\'")}'); saveToCloud('${songName.replace(/'/g, "\\'")}', '${cleanAlbumName.replace(/'/g, "\\'")}');">+</button>
+                        `;
+                        
+                        const trigger = div.querySelector('.preview-trigger'); 
+                        trigger.setAttribute('data-preview', track.previewUrl || ''); 
+                        trigger.setAttribute('data-apple', track.trackViewUrl || ''); 
+                        trigger.onclick = (e) => togglePreview(e, trigger);
+                        
+                        resultsList.appendChild(div);
+                    });
+                } else {
+                    resultsList.innerHTML = '<div class="text-center text-xs text-zinc-500 py-6">找不到相關歌曲</div>';
+                }
+            } catch(e) { 
+                status.innerText = `搜尋失敗`; 
+                console.error('Apple Music Search Error:', e);
+            }
         }
         
-        document.getElementById('search-spotify-btn').onclick = searchSpotify;
-        document.getElementById('close-search-btn').onclick = () => { if (currentAudio) { currentAudio.pause(); currentAudio = null; currentlyPlayingElement = null; } document.getElementById('spotify-results-view').classList.add('hidden'); document.getElementById('playlist-view').classList.remove('hidden'); document.getElementById('spotify-query').value = ''; };
+        document.getElementById('search-music-btn').onclick = searchAppleMusic;
+        document.getElementById('close-search-btn').onclick = () => { 
+            if (currentAudio) { currentAudio.pause(); currentAudio = null; currentlyPlayingElement = null; } 
+            document.getElementById('music-results-view').classList.add('hidden'); 
+            document.getElementById('playlist-view').classList.remove('hidden'); 
+            document.getElementById('music-query').value = ''; 
+        };
 
         let useWhiteTags = false; let bgStyle = { scale: 100, x: 50, y: 50 };
         const posterContainer = document.getElementById('playlist-items'); const playlistUI = document.getElementById('playlist-list-ui');
@@ -460,7 +483,16 @@
             if (minLeft < limitLeft) { const nextScale = currentScale - 0.05; document.documentElement.style.setProperty('--tag-scale', nextScale); setTimeout(() => checkOverflowAndShrink(availableHeight, nextScale), 0); }
         }
 
-        async function saveToCloud(name, album) { if (!db || !user) return; const id = btoa(encodeURIComponent(name + album)).substring(0, 24); try { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'song_library', id), { name, album: album || '', time: serverTimestamp() }, { merge: true }); } catch(e){} }
+        window.saveToCloud = async (name, album) => { 
+            if (!db || !user) return; 
+            const id = btoa(encodeURIComponent(name + album)).substring(0, 24).replace(/[/+=]/g, '_'); 
+            try { 
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'song_library', id), { name, album: album || '', time: serverTimestamp() }, { merge: true }); 
+            } catch(e) {
+                console.warn('儲存到雲端歌庫失敗', e);
+            } 
+        };
+
         function listenToLibrary() { if (!db) return; onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'song_library'), (snap) => { allLibrarySongs = snap.docs.map(doc => doc.data()).sort((a,b) => (b.time?.seconds||0) - (a.time?.seconds||0)); renderLibrary(); }); }
 
         function renderLibrary(filter = '') {
@@ -474,7 +506,7 @@
         }
 
         document.getElementById('library-search').oninput = (e) => renderLibrary(e.target.value.toLowerCase());
-        document.getElementById('spotify-query').onkeypress = (e) => { if(e.key === 'Enter') document.getElementById('search-spotify-btn').click(); };
+        document.getElementById('music-query').onkeypress = (e) => { if(e.key === 'Enter') document.getElementById('search-music-btn').click(); };
         document.getElementById('nickname-input').oninput = (e) => { const lines = e.target.value.split('\n'); document.getElementById('title-container').innerHTML = `<div class="title-main">${lines[0]||''}</div><div class="title-sub">${lines[1]||''}</div>`; updateIndices(); };
 
         window.switchTab = (tab) => { document.getElementById('panel-edit').classList.toggle('hidden', tab !== 'edit'); document.getElementById('panel-library').classList.toggle('hidden', tab !== 'library'); document.getElementById('tab-edit').className = `tab-btn pb-3 transition-all ${tab === 'edit' ? 'active text-white' : 'text-zinc-500'}`; document.getElementById('tab-library').className = `tab-btn pb-3 transition-all ${tab === 'library' ? 'active text-white' : 'text-zinc-500'}`; };
@@ -492,9 +524,22 @@
         
         document.getElementById('export-btn').onclick = async () => { const poster = document.getElementById('capture-zone'); const t = poster.style.transform; poster.style.transform = 'scale(1)'; const c = await html2canvas(poster, { scale: 3, useCORS: true }); poster.style.transform = t; const a = document.createElement('a'); a.download = 'My_Setlist.png'; a.href = c.toDataURL(); a.click(); };
 
-        initSpotifyState();
-        const autoScale = () => { const w = document.getElementById('scale-wrapper'); const s = Math.min(1, (w.clientWidth - 40) / 592); document.getElementById('capture-zone').style.transform = `scale(${s})`; w.style.height = (400 * s + 20) + 'px'; };
-        window.onresize = autoScale; window.onload = autoScale;
+        const autoScale = () => { 
+            const wrapper = document.getElementById('scale-wrapper');
+            const poster = document.getElementById('capture-zone');
+            if (!wrapper || !poster) return;
+            
+            const containerWidth = wrapper.parentElement.clientWidth;
+            const scale = Math.min(1, (containerWidth - 32) / 592);
+            
+            poster.style.transform = `scale(${scale})`;
+            wrapper.style.height = `${(400 * scale) + 20}px`;
+        };
+        
+        window.addEventListener('resize', autoScale);
+        window.addEventListener('load', autoScale);
+        setTimeout(autoScale, 100);
+
     </script>
 </body>
 </html>
