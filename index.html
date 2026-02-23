@@ -96,12 +96,18 @@
         .tab-btn.active { border-bottom: 2px solid #22c55e; color: white; }
         input[type=range] { accent-color: #22c55e; height: 4px; border-radius: 2px; }
         .sortable-item { cursor: grab; user-select: none; }
+
+        @media (max-width: 1023px) {
+            .mobile-collapsed { height: 40px !important; }
+            .mobile-collapsed #right-panel-content { opacity: 0; pointer-events: none; }
+            .mobile-collapsed #mobile-panel-icon { transform: rotate(-90deg); }
+        }
     </style>
 </head>
 <body class="text-zinc-100 h-[100dvh] flex flex-col">
 
-    <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
-        <div class="flex-1 p-4 flex flex-col items-center bg-zinc-800 relative overflow-y-auto">
+    <div class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+        <div class="flex-1 p-4 flex flex-col items-center bg-zinc-800 relative overflow-y-auto pb-10 lg:pb-4">
             <div id="scale-wrapper" class="w-full flex justify-center items-start pt-4 transition-all duration-300">
                 <div id="capture-zone" class="poster-size shadow-2xl">
                     <div class="content-layer">
@@ -134,7 +140,7 @@
                     </div>
                     <div class="flex flex-col justify-between space-y-3">
                         <div class="flex justify-between items-center">
-                            <p class="text-[10px] text-zinc-400 font-bold uppercase tracking-widest m-0">輸出與檔案</p>
+                            <p class="text-[10px] text-zinc-400 font-bold uppercase tracking-widest m-0">上傳與輸出</p>
                             <button onclick="openTutorial()" class="text-zinc-400 hover:text-white transition-colors outline-none flex items-center gap-1" title="查看使用說明">
                                 <span class="text-[10px] font-bold">使用說明</span>
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,60 +158,76 @@
             </div>
         </div>
 
-        <div class="w-full lg:w-[380px] h-[55vh] lg:h-auto bg-zinc-900 border-l border-zinc-800 p-5 flex flex-col">
-            <div class="flex gap-6 border-b border-zinc-800 mb-5 text-sm font-bold">
-                <button id="tab-edit" class="tab-btn pb-3 active transition-all" onclick="switchTab('edit')">目前歌單</button>
-                <button id="tab-library" class="tab-btn pb-3 text-zinc-500 transition-all" onclick="switchTab('library')">社群歌庫</button>
-            </div>
+        <!-- 右側/下方歌單面板 -->
+        <div id="right-panel" class="w-full lg:w-[380px] h-[55vh] lg:h-auto bg-zinc-900 border-t lg:border-t-0 lg:border-l border-zinc-800 flex flex-col transition-[height] duration-300 ease-in-out shrink-0 relative z-20 overflow-hidden shadow-[0_-10px_20px_rgba(0,0,0,0.3)] lg:shadow-none">
             
-            <div id="panel-edit" class="flex flex-col flex-1 overflow-hidden relative">
-                <div class="mb-4 space-y-2">
-                    
-                    <div id="music-search-area" class="flex flex-col gap-2">
-                        <div class="flex gap-2">
-                            <input type="text" id="music-query" placeholder="搜尋歌曲..." class="flex-1 bg-zinc-800 p-2.5 rounded-lg text-xs border border-zinc-700 outline-none focus:border-[#fa243c]">
-                            <button id="search-music-btn" class="bg-zinc-700 hover:bg-zinc-600 text-white px-4 rounded-lg text-xs flex-shrink-0">搜尋</button>
+            <button onclick="toggleMobilePanel()" class="lg:hidden w-full h-10 bg-zinc-800 hover:bg-zinc-700 flex items-center justify-center gap-2 shrink-0 transition-colors border-b border-zinc-700 outline-none">
+                <span id="mobile-panel-icon" class="text-zinc-400 text-[10px] transition-transform duration-300">▼</span>
+                <span id="mobile-panel-text" class="text-[11px] font-bold text-zinc-300 tracking-wider">收起歌單面板</span>
+            </button>
+
+            <!-- 面板內容 -->
+            <div id="right-panel-content" class="p-5 flex flex-col flex-1 overflow-hidden transition-opacity duration-300 w-full">
+                <div class="flex gap-6 border-b border-zinc-800 mb-5 text-sm font-bold shrink-0">
+                    <button id="tab-edit" class="tab-btn pb-3 active transition-all" onclick="switchTab('edit')">目前歌單</button>
+                    <button id="tab-library" class="tab-btn pb-3 text-zinc-500 transition-all" onclick="switchTab('library')">大家都在聽</button>
+                </div>
+                
+                <div id="panel-edit" class="flex flex-col flex-1 overflow-hidden relative">
+                    <div class="mb-4 space-y-2 shrink-0">
+                        <div id="music-search-area" class="flex flex-col gap-2">
+                            <div class="flex gap-2">
+                                <select id="search-region" class="bg-zinc-800 p-2.5 rounded-lg text-xs border border-zinc-700 outline-none focus:border-[#fa243c] text-zinc-300 flex-shrink-0 cursor-pointer" title="切換地區以獲得原文歌名">
+                                    <option value="TW">TW 台灣</option>
+                                    <option value="JP">JP 日本</option>
+                                    <option value="KR">KR 韓國</option>
+                                    <option value="US">US 歐美</option>
+                                </select>
+                                <input type="text" id="music-query" placeholder="搜尋歌曲..." class="flex-1 bg-zinc-800 p-2.5 rounded-lg text-xs border border-zinc-700 outline-none focus:border-[#fa243c]">
+                                <button id="search-music-btn" class="bg-zinc-700 hover:bg-zinc-600 text-white px-4 rounded-lg text-xs flex-shrink-0">搜尋</button>
+                            </div>
+                            <p class="text-[10px] text-zinc-500 pl-1">💡 若想顯示歌曲原文，可嘗試切換「搜尋地區」</p>
                         </div>
+
+                        <details class="group border border-zinc-800 rounded-lg bg-zinc-800/30">
+                            <summary class="cursor-pointer p-2 text-[10px] text-zinc-400 select-none flex justify-between items-center">
+                                <span>手動輸入歌曲</span>
+                                <span class="text-zinc-600 group-open:rotate-180 transition-transform">▼</span>
+                            </summary>
+                            <div class="p-3 pt-0 grid grid-cols-2 gap-2 mt-2">
+                                <input type="text" id="custom-name" placeholder="歌名" class="bg-zinc-900 p-2 rounded text-xs border border-zinc-700 outline-none">
+                                <input type="text" id="custom-album" placeholder="專輯" class="bg-zinc-900 p-2 rounded text-xs border border-zinc-700 outline-none">
+                                <button id="add-custom-btn" class="col-span-2 bg-zinc-700 hover:bg-zinc-600 text-white py-2 rounded text-xs">+ 加入歌單</button>
+                            </div>
+                        </details>
                     </div>
 
-                    <details class="group border border-zinc-800 rounded-lg bg-zinc-800/30">
-                        <summary class="cursor-pointer p-2 text-[10px] text-zinc-400 select-none flex justify-between items-center">
-                            <span>手動輸入歌曲</span>
-                            <span class="text-zinc-600 group-open:rotate-180 transition-transform">▼</span>
-                        </summary>
-                        <div class="p-3 pt-0 grid grid-cols-2 gap-2 mt-2">
-                            <input type="text" id="custom-name" placeholder="歌名" class="bg-zinc-900 p-2 rounded text-xs border border-zinc-700 outline-none">
-                            <input type="text" id="custom-album" placeholder="專輯" class="bg-zinc-900 p-2 rounded text-xs border border-zinc-700 outline-none">
-                            <button id="add-custom-btn" class="col-span-2 bg-zinc-700 hover:bg-zinc-600 text-white py-2 rounded text-xs">+ 加入歌單</button>
+                    <div class="relative flex-1 overflow-hidden">
+                        <div id="playlist-view" class="h-full flex flex-col">
+                            <div id="playlist-list-ui" class="flex-1 overflow-y-auto space-y-1.5 no-scrollbar pr-1"></div>
+                            <div class="flex justify-between items-center mt-3 border-t border-zinc-800 pt-3 shrink-0">
+                                <button onclick="toggleBulkModal()" class="text-[11px] text-zinc-400 hover:text-white underline decoration-dotted">批次匯入文字</button>
+                                <button id="clear-all-btn" class="text-[11px] text-red-500 hover:text-red-400 font-bold">清空全部</button>
+                            </div>
                         </div>
-                    </details>
-                </div>
 
-                <div class="relative flex-1 overflow-hidden">
-                    <div id="playlist-view" class="h-full flex flex-col">
-                        <div id="playlist-list-ui" class="flex-1 overflow-y-auto space-y-1.5 no-scrollbar pr-1"></div>
-                        <div class="flex justify-between items-center mt-3 border-t border-zinc-800 pt-3">
-                            <button onclick="toggleBulkModal()" class="text-[11px] text-zinc-400 hover:text-white underline decoration-dotted">批次匯入文字</button>
-                            <button id="clear-all-btn" class="text-[11px] text-red-500 hover:text-red-400 font-bold">清空全部</button>
+                        <div id="music-results-view" class="hidden absolute inset-0 bg-zinc-900 z-50 flex flex-col h-full">
+                            <div class="flex justify-between items-center p-2 bg-zinc-800 border-b border-zinc-700 shrink-0">
+                                <span id="search-status" class="text-xs text-zinc-400 truncate pr-2">搜尋結果</span>
+                                <button id="close-search-btn" class="flex-shrink-0 text-xs bg-zinc-700 px-3 py-1 rounded hover:bg-zinc-600 text-white">返回</button>
+                            </div>
+                            <div id="music-results-list" class="flex-1 overflow-y-auto p-2 space-y-1.5 no-scrollbar"></div>
                         </div>
                     </div>
+                </div>
 
-                    <div id="music-results-view" class="hidden absolute inset-0 bg-zinc-900 z-50 flex flex-col h-full">
-                        <div class="flex justify-between items-center p-2 bg-zinc-800 border-b border-zinc-700">
-                            <span id="search-status" class="text-xs text-zinc-400 truncate pr-2">搜尋結果</span>
-                            <button id="close-search-btn" class="flex-shrink-0 text-xs bg-zinc-700 px-3 py-1 rounded hover:bg-zinc-600 text-white">返回</button>
-                        </div>
-                        <div id="music-results-list" class="flex-1 overflow-y-auto p-2 space-y-1.5 no-scrollbar"></div>
+                <div id="panel-library" class="hidden flex-1 flex flex-col overflow-hidden">
+                    <div class="relative mb-3 flex-shrink-0">
+                        <input type="text" id="library-search" placeholder="搜尋社群歌庫..." class="w-full bg-zinc-800 p-2.5 pl-8 rounded-lg text-xs border border-zinc-700 outline-none">
+                        <span class="absolute left-3 top-2.5 opacity-30 text-xs">🔍</span>
                     </div>
+                    <div id="library-list-ui" class="flex-1 overflow-y-auto space-y-1.5 pr-1 no-scrollbar"></div>
                 </div>
-            </div>
-
-            <div id="panel-library" class="hidden flex-1 flex flex-col overflow-hidden">
-                <div class="relative mb-3 flex-shrink-0">
-                    <input type="text" id="library-search" placeholder="搜尋社群歌庫..." class="w-full bg-zinc-800 p-2.5 pl-8 rounded-lg text-xs border border-zinc-700 outline-none">
-                    <span class="absolute left-3 top-2.5 opacity-30 text-xs">🔍</span>
-                </div>
-                <div id="library-list-ui" class="flex-1 overflow-y-auto space-y-1.5 pr-1 no-scrollbar"></div>
             </div>
         </div>
     </div>
@@ -213,7 +235,7 @@
     <!-- 批次匯入 Modal -->
     <div id="bulk-modal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center p-4 z-[100] backdrop-blur-sm">
         <div class="bg-zinc-800 p-8 rounded-2xl w-full max-w-md border border-zinc-700 shadow-2xl">
-            <h3 class="font-bold text-lg mb-2">批次匯入</h3>
+            <h3 class="font-bold text-lg mb-2">批次匯入歌單</h3>
             <p class="text-[10px] text-zinc-500 mb-4">格式：歌名,專輯 (一行一首)</p>
             <textarea id="bulk-input" rows="8" class="w-full bg-zinc-900 p-4 rounded-xl text-xs mb-6 outline-none focus:ring-1 focus:ring-green-500" placeholder="歌名1,專輯1&#10;歌名2,專輯2"></textarea>
             <div class="flex gap-3">
@@ -223,29 +245,24 @@
         </div>
     </div>
 
-    <!-- 使用說明 Modal (相簿) -->
+    <!-- 使用說明 Modal -->
     <div id="tutorial-modal" class="fixed inset-0 bg-black/95 hidden flex flex-col items-center justify-center z-[200] backdrop-blur-md">
-        <!-- 關閉按鈕 -->
         <button onclick="closeTutorial()" class="absolute top-6 right-6 text-zinc-400 hover:text-white bg-zinc-800 hover:bg-zinc-700 p-3 rounded-full transition-colors z-[210] shadow-lg">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
 
         <div class="relative w-full max-w-5xl h-[75vh] flex items-center justify-center px-16">
-            <!-- 左切換 -->
             <button onclick="prevTutorial()" id="tut-prev" class="absolute left-4 lg:left-0 text-white bg-zinc-800/50 hover:bg-green-600 p-4 rounded-full transition-colors disabled:opacity-30 disabled:hover:bg-zinc-800/50 z-[210]">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7"></path></svg>
             </button>
             
-            <!-- 圖片容器 -->
             <img id="tut-img" src="" class="max-w-full max-h-full object-contain rounded-lg shadow-2xl transition-opacity duration-300 select-none" alt="使用說明">
             
-            <!-- 右切換 -->
             <button onclick="nextTutorial()" id="tut-next" class="absolute right-4 lg:right-0 text-white bg-zinc-800/50 hover:bg-green-600 p-4 rounded-full transition-colors disabled:opacity-30 disabled:hover:bg-zinc-800/50 z-[210]">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7"></path></svg>
             </button>
         </div>
         
-        <!-- 頁數顯示 -->
         <div class="mt-8 bg-zinc-800 px-6 py-2 rounded-full border border-zinc-700 shadow-lg flex items-center gap-3">
             <span class="text-zinc-400 text-sm font-bold tracking-widest uppercase">Tutorial</span>
             <div id="tut-counter" class="text-white font-mono text-lg font-bold">1 / 1</div>
@@ -257,16 +274,44 @@
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const tutorialImages = [
-            "https://duk.tw/JINt0u.png", 
-            "https://duk.tw/354kpZ.png", 
-            "https://duk.tw/MB8vtY.png"  
+        // === 手機版面板收合邏輯 ===
+        let isMobilePanelOpen = true;
+        window.toggleMobilePanel = () => {
+            const panel = document.getElementById('right-panel');
+            const text = document.getElementById('mobile-panel-text');
+            isMobilePanelOpen = !isMobilePanelOpen;
+            if (isMobilePanelOpen) {
+                panel.classList.remove('mobile-collapsed'); text.innerText = '收起歌單面板';
+            } else {
+                panel.classList.add('mobile-collapsed'); text.innerText = '展開歌單面板';
+            }
+            setTimeout(autoScale, 300);
+        };
+
+        // === 電腦版與手機版的兩組相簿 ===
+        const tutorialImagesDesktop = [
+            "https://images.unsplash.com/photo-1614680376593-902f74cf0d41?q=80&w=1000&auto=format&fit=crop", 
+            "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=1000&auto=format&fit=crop", 
+            "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1000&auto=format&fit=crop"  
         ];
 
+        const tutorialImagesMobile = [
+            "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?q=80&w=800&auto=format&fit=crop", 
+            "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?q=80&w=800&auto=format&fit=crop"
+        ];
+
+        let currentTutorialImages = [];
         let currentTutorialStep = 0;
 
         window.openTutorial = () => {
-            if(tutorialImages.length === 0) { alert("尚未設定說明圖片！"); return; }
+            // 偵測目前螢幕寬度，若小於 1024px (對應 Tailwind 的 lg 斷點)，則使用手機版相簿
+            if (window.innerWidth < 1024) {
+                currentTutorialImages = tutorialImagesMobile;
+            } else {
+                currentTutorialImages = tutorialImagesDesktop;
+            }
+
+            if(currentTutorialImages.length === 0) { alert("尚未設定說明圖片！"); return; }
             currentTutorialStep = 0;
             document.getElementById('tutorial-modal').classList.remove('hidden');
             document.getElementById('tutorial-modal').classList.add('flex');
@@ -286,7 +331,7 @@
         };
 
         window.nextTutorial = () => {
-            if(currentTutorialStep < tutorialImages.length - 1) {
+            if(currentTutorialStep < currentTutorialImages.length - 1) {
                 currentTutorialStep++;
                 updateTutorialView();
             }
@@ -300,13 +345,14 @@
 
             imgEl.style.opacity = '0';
             setTimeout(() => {
-                imgEl.src = tutorialImages[currentTutorialStep];
+                // 載入當前決定好(電腦/手機)的相簿陣列
+                imgEl.src = currentTutorialImages[currentTutorialStep];
                 imgEl.onload = () => { imgEl.style.opacity = '1'; };
             }, 150);
 
-            counter.innerText = `${currentTutorialStep + 1} / ${tutorialImages.length}`;
+            counter.innerText = `${currentTutorialStep + 1} / ${currentTutorialImages.length}`;
             prevBtn.disabled = currentTutorialStep === 0;
-            nextBtn.disabled = currentTutorialStep === tutorialImages.length - 1;
+            nextBtn.disabled = currentTutorialStep === currentTutorialImages.length - 1;
         }
 
         document.addEventListener('keydown', (e) => {
@@ -318,6 +364,7 @@
             }
         });
 
+        // 以下為原有的 Firebase / Apple Music 邏輯保留
         const manualConfig = { apiKey: "AIzaSyDhP9JryXni2a6SOka73Lgng80DBwg0esI",
   authDomain: "my-setlist-25d7a.firebaseapp.com",
   projectId: "my-setlist-25d7a",
@@ -379,6 +426,10 @@
             const q = document.getElementById('music-query').value.trim(); 
             if (!q) return;
             
+            const region = document.getElementById('search-region').value || 'TW';
+            const langMap = { 'TW': 'zh_tw', 'JP': 'ja_jp', 'US': 'en_us', 'KR': 'ko_kr' };
+            const lang = langMap[region] || 'zh_tw';
+            
             document.getElementById('playlist-view').classList.add('hidden'); 
             const resultsView = document.getElementById('music-results-view'); 
             const resultsList = document.getElementById('music-results-list'); 
@@ -389,7 +440,7 @@
             status.innerText = '搜尋中...';
             
             try {
-                const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&entity=song&limit=25&country=TW&lang=zh_tw`);
+                const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&entity=song&limit=25&country=${region}&lang=${lang}`);
                 const data = await res.json(); 
                 
                 status.innerText = `結果：${data.results.length} 筆`;
@@ -403,7 +454,6 @@
                         const songName = track.trackName || '未知歌曲';
                         const originalAlbumName = track.collectionName || track.artistName || '未知專輯';
                         
-                        // 產生乾淨的專輯名稱（海報上使用），移除 Special/Deluxe Edition, Single, EP 等字樣（更寬鬆地匹配，不限於字尾）
                         let cleanAlbumName = originalAlbumName
                             .replace(/\s*[\(\[-]?\s*(Special|Deluxe)\s*Edition\s*[\)\]]?\s*/gi, '')
                             .replace(/\s*-\s*(Single|EP|E\.P\.)\s*$/gi, '')
@@ -435,7 +485,6 @@
                 }
             } catch(e) { 
                 status.innerText = `搜尋失敗`; 
-                console.error('Apple Music Search Error:', e);
             }
         }
         
@@ -488,9 +537,7 @@
             const id = btoa(encodeURIComponent(name + album)).substring(0, 24).replace(/[/+=]/g, '_'); 
             try { 
                 await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'song_library', id), { name, album: album || '', time: serverTimestamp() }, { merge: true }); 
-            } catch(e) {
-                console.warn('儲存到雲端歌庫失敗', e);
-            } 
+            } catch(e) {} 
         };
 
         function listenToLibrary() { if (!db) return; onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'song_library'), (snap) => { allLibrarySongs = snap.docs.map(doc => doc.data()).sort((a,b) => (b.time?.seconds||0) - (a.time?.seconds||0)); renderLibrary(); }); }
@@ -517,8 +564,11 @@
 
         document.getElementById('bg-upload').onchange = (e) => { const f = e.target.files[0]; if(f) { const r = new FileReader(); r.onload = (ev) => { document.getElementById('capture-zone').style.backgroundImage = `url(${ev.target.result})`; document.getElementById('capture-zone').style.color='white'; }; r.readAsDataURL(f); } };
 
-        document.getElementById('bg-scale').oninput = (e) => { bgStyle.scale = e.target.value; updateBg(); }; document.getElementById('bg-x').oninput = (e) => { bgStyle.x = e.target.value; updateBg(); }; document.getElementById('bg-y').oninput = (e) => { bgStyle.y = e.target.value; updateBg(); };
+        document.getElementById('bg-scale').oninput = (e) => { bgStyle.scale = e.target.value; document.getElementById('val-scale').innerText = e.target.value + '%'; updateBg(); }; 
+        document.getElementById('bg-x').oninput = (e) => { bgStyle.x = e.target.value; document.getElementById('val-x').innerText = e.target.value + '%'; updateBg(); }; 
+        document.getElementById('bg-y').oninput = (e) => { bgStyle.y = e.target.value; document.getElementById('val-y').innerText = e.target.value + '%'; updateBg(); };
         function updateBg() { const z = document.getElementById('capture-zone'); z.style.backgroundSize = `${bgStyle.scale}%`; z.style.backgroundPosition = `${bgStyle.x}% ${bgStyle.y}%`; }
+        
         document.getElementById('toggle-color').onclick = () => { const z = document.getElementById('capture-zone'); z.style.color = z.style.color === 'white' ? 'black' : 'white'; };
         document.getElementById('toggle-tag-color').onclick = () => { useWhiteTags = !useWhiteTags; updateIndices(); };
         
@@ -528,10 +578,8 @@
             const wrapper = document.getElementById('scale-wrapper');
             const poster = document.getElementById('capture-zone');
             if (!wrapper || !poster) return;
-            
             const containerWidth = wrapper.parentElement.clientWidth;
             const scale = Math.min(1, (containerWidth - 32) / 592);
-            
             poster.style.transform = `scale(${scale})`;
             wrapper.style.height = `${(400 * scale) + 20}px`;
         };
