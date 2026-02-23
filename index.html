@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>歌單海報產生器</title>
+    <title>歌單海報產生器 (含頁尾版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -120,7 +120,7 @@
                 </div>
             </div>
 
-            <div class="mt-6 w-full max-w-3xl bg-zinc-700/50 p-5 rounded-2xl border border-zinc-600 backdrop-blur-sm shadow-xl">
+            <div class="mt-6 w-full max-w-3xl bg-zinc-700/50 p-5 rounded-2xl border border-zinc-600 backdrop-blur-sm shadow-xl shrink-0">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="space-y-3">
                         <p class="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">標題文字</p>
@@ -140,7 +140,7 @@
                     </div>
                     <div class="flex flex-col justify-between space-y-3">
                         <div class="flex justify-between items-center">
-                            <p class="text-[10px] text-zinc-400 font-bold uppercase tracking-widest m-0">上傳與輸出</p>
+                            <p class="text-[10px] text-zinc-400 font-bold uppercase tracking-widest m-0">輸出與檔案</p>
                             <button onclick="openTutorial()" class="text-zinc-400 hover:text-white transition-colors outline-none flex items-center gap-1" title="查看使用說明">
                                 <span class="text-[10px] font-bold">使用說明</span>
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -170,7 +170,7 @@
             <div id="right-panel-content" class="p-5 flex flex-col flex-1 overflow-hidden transition-opacity duration-300 w-full">
                 <div class="flex gap-6 border-b border-zinc-800 mb-5 text-sm font-bold shrink-0">
                     <button id="tab-edit" class="tab-btn pb-3 active transition-all" onclick="switchTab('edit')">目前歌單</button>
-                    <button id="tab-library" class="tab-btn pb-3 text-zinc-500 transition-all" onclick="switchTab('library')">大家都在聽</button>
+                    <button id="tab-library" class="tab-btn pb-3 text-zinc-500 transition-all" onclick="switchTab('library')">社群歌庫</button>
                 </div>
                 
                 <div id="panel-edit" class="flex flex-col flex-1 overflow-hidden relative">
@@ -186,12 +186,12 @@
                                 <input type="text" id="music-query" placeholder="搜尋歌曲..." class="flex-1 bg-zinc-800 p-2.5 rounded-lg text-xs border border-zinc-700 outline-none focus:border-[#fa243c]">
                                 <button id="search-music-btn" class="bg-zinc-700 hover:bg-zinc-600 text-white px-4 rounded-lg text-xs flex-shrink-0">搜尋</button>
                             </div>
-                            <p class="text-[10px] text-zinc-500 pl-1">💡 若想顯示歌曲原文，可嘗試切換「搜尋地區」</p>
+                            <p class="text-[10px] text-zinc-500 pl-1">💡 若出現外文翻譯，可嘗試切換「搜尋地區」</p>
                         </div>
 
                         <details class="group border border-zinc-800 rounded-lg bg-zinc-800/30">
                             <summary class="cursor-pointer p-2 text-[10px] text-zinc-400 select-none flex justify-between items-center">
-                                <span>手動輸入歌曲</span>
+                                <span>手動輸入 / 修正</span>
                                 <span class="text-zinc-600 group-open:rotate-180 transition-transform">▼</span>
                             </summary>
                             <div class="p-3 pt-0 grid grid-cols-2 gap-2 mt-2">
@@ -232,10 +232,58 @@
         </div>
     </div>
 
+    <!-- 頁尾 Footer -->
+    <footer class="bg-[#B3D6D8] text-[#1D4E89] py-2 px-4 flex flex-wrap justify-center lg:justify-end items-center gap-4 shrink-0 z-30 shadow-inner">
+        <span class="font-bold text-xs tracking-wider">Mitaku Production Presents：</span>
+        
+        <div class="flex items-center gap-3">
+            <!-- 網站首頁 Icon (Home) -->
+            <a href="#" target="_blank" class="hover:opacity-70 transition-opacity" title="網站首頁">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+            </a>
+            
+            <!-- YouTube Icon -->
+            <a href="#" target="_blank" class="hover:opacity-70 transition-opacity" title="YouTube">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33 2.78 2.78 0 0 0 1.94 2c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.33 29 29 0 0 0-.46-5.33z"></path>
+                    <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon>
+                </svg>
+            </a>
+            
+            <!-- Facebook Icon -->
+            <a href="#" target="_blank" class="hover:opacity-70 transition-opacity" title="Facebook">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                </svg>
+            </a>
+            
+            <!-- Threads Icon (以 @ 風格示意) -->
+            <a href="#" target="_blank" class="hover:opacity-70 transition-opacity" title="Threads">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="4"></circle>
+                    <path d="M16 12v1.5a2.5 2.5 0 0 0 5 0v-1.5a9 9 0 1 0-5.5 8.28"></path>
+                </svg>
+            </a>
+
+            <!-- 方格子 Icon (以四宮格示意) -->
+            <a href="#" target="_blank" class="hover:opacity-70 transition-opacity" title="方格子">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="3" width="7" height="7"></rect>
+                    <rect x="14" y="14" width="7" height="7"></rect>
+                    <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+            </a>
+        </div>
+    </footer>
+
     <!-- 批次匯入 Modal -->
     <div id="bulk-modal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center p-4 z-[100] backdrop-blur-sm">
         <div class="bg-zinc-800 p-8 rounded-2xl w-full max-w-md border border-zinc-700 shadow-2xl">
-            <h3 class="font-bold text-lg mb-2">批次匯入歌單</h3>
+            <h3 class="font-bold text-lg mb-2">批次匯入</h3>
             <p class="text-[10px] text-zinc-500 mb-4">格式：歌名,專輯 (一行一首)</p>
             <textarea id="bulk-input" rows="8" class="w-full bg-zinc-900 p-4 rounded-xl text-xs mb-6 outline-none focus:ring-1 focus:ring-green-500" placeholder="歌名1,專輯1&#10;歌名2,專輯2"></textarea>
             <div class="flex gap-3">
@@ -304,12 +352,8 @@
         let currentTutorialStep = 0;
 
         window.openTutorial = () => {
-            // 偵測目前螢幕寬度，若小於 1024px (對應 Tailwind 的 lg 斷點)，則使用手機版相簿
-            if (window.innerWidth < 1024) {
-                currentTutorialImages = tutorialImagesMobile;
-            } else {
-                currentTutorialImages = tutorialImagesDesktop;
-            }
+            if (window.innerWidth < 1024) currentTutorialImages = tutorialImagesMobile;
+            else currentTutorialImages = tutorialImagesDesktop;
 
             if(currentTutorialImages.length === 0) { alert("尚未設定說明圖片！"); return; }
             currentTutorialStep = 0;
@@ -345,7 +389,6 @@
 
             imgEl.style.opacity = '0';
             setTimeout(() => {
-                // 載入當前決定好(電腦/手機)的相簿陣列
                 imgEl.src = currentTutorialImages[currentTutorialStep];
                 imgEl.onload = () => { imgEl.style.opacity = '1'; };
             }, 150);
@@ -364,7 +407,7 @@
             }
         });
 
-        // 以下為原有的 Firebase / Apple Music 邏輯保留
+        // 核心業務邏輯
         const manualConfig = { apiKey: "AIzaSyDhP9JryXni2a6SOka73Lgng80DBwg0esI",
   authDomain: "my-setlist-25d7a.firebaseapp.com",
   projectId: "my-setlist-25d7a",
