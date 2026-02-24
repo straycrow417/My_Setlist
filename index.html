@@ -140,7 +140,7 @@
                     </div>
                     <div class="flex flex-col justify-between space-y-3">
                         <div class="flex justify-between items-center">
-                            <p class="text-[10px] text-zinc-400 font-bold uppercase tracking-widest m-0">輸出與檔案</p>
+                            <p class="text-[10px] text-zinc-400 font-bold uppercase tracking-widest m-0">上傳與輸出</p>
                             <button onclick="openTutorial()" class="text-zinc-400 hover:text-white transition-colors outline-none flex items-center gap-1" title="查看使用說明">
                                 <span class="text-[10px] font-bold">使用說明</span>
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -170,7 +170,7 @@
             <div id="right-panel-content" class="p-5 flex flex-col flex-1 overflow-hidden transition-opacity duration-300 w-full">
                 <div class="flex gap-6 border-b border-zinc-800 mb-5 text-sm font-bold shrink-0">
                     <button id="tab-edit" class="tab-btn pb-3 active transition-all" onclick="switchTab('edit')">目前歌單</button>
-                    <button id="tab-library" class="tab-btn pb-3 text-zinc-500 transition-all" onclick="switchTab('library')">社群歌庫</button>
+                    <button id="tab-library" class="tab-btn pb-3 text-zinc-500 transition-all" onclick="switchTab('library')">大家都在聽</button>
                 </div>
                 
                 <div id="panel-edit" class="flex flex-col flex-1 overflow-hidden relative">
@@ -186,12 +186,12 @@
                                 <input type="text" id="music-query" placeholder="搜尋歌曲..." class="flex-1 bg-zinc-800 p-2.5 rounded-lg text-xs border border-zinc-700 outline-none focus:border-[#fa243c]">
                                 <button id="search-music-btn" class="bg-zinc-700 hover:bg-zinc-600 text-white px-4 rounded-lg text-xs flex-shrink-0">搜尋</button>
                             </div>
-                            <p class="text-[10px] text-zinc-500 pl-1">💡 若出現外文翻譯，可嘗試切換「搜尋地區」</p>
+                            <p class="text-[10px] text-zinc-500 pl-1">💡 若想顯示歌曲原文，可嘗試切換「搜尋地區」</p>
                         </div>
 
                         <details class="group border border-zinc-800 rounded-lg bg-zinc-800/30">
                             <summary class="cursor-pointer p-2 text-[10px] text-zinc-400 select-none flex justify-between items-center">
-                                <span>手動輸入 / 修正</span>
+                                <span>手動輸入歌曲</span>
                                 <span class="text-zinc-600 group-open:rotate-180 transition-transform">▼</span>
                             </summary>
                             <div class="p-3 pt-0 grid grid-cols-2 gap-2 mt-2">
@@ -206,7 +206,7 @@
                         <div id="playlist-view" class="h-full flex flex-col">
                             <div id="playlist-list-ui" class="flex-1 overflow-y-auto space-y-1.5 no-scrollbar pr-1"></div>
                             <div class="flex justify-between items-center mt-3 border-t border-zinc-800 pt-3 shrink-0">
-                                <button onclick="toggleBulkModal()" class="text-[11px] text-zinc-400 hover:text-white underline decoration-dotted">批次匯入文字</button>
+                                <button onclick="toggleBulkModal()" class="text-[11px] text-zinc-400 hover:text-white underline decoration-dotted">批次匯入歌單</button>
                                 <button id="clear-all-btn" class="text-[11px] text-red-500 hover:text-red-400 font-bold">清空全部</button>
                             </div>
                         </div>
@@ -223,7 +223,7 @@
 
                 <div id="panel-library" class="hidden flex-1 flex flex-col overflow-hidden">
                     <div class="relative mb-3 flex-shrink-0">
-                        <input type="text" id="library-search" placeholder="搜尋社群歌庫..." class="w-full bg-zinc-800 p-2.5 pl-8 rounded-lg text-xs border border-zinc-700 outline-none">
+                        <input type="text" id="library-search" placeholder="搜搜看大家都聽了什麼！" class="w-full bg-zinc-800 p-2.5 pl-8 rounded-lg text-xs border border-zinc-700 outline-none">
                         <span class="absolute left-3 top-2.5 opacity-30 text-xs">🔍</span>
                     </div>
                     <div id="library-list-ui" class="flex-1 overflow-y-auto space-y-1.5 pr-1 no-scrollbar"></div>
@@ -339,13 +339,20 @@
         // === 電腦版與手機版的兩組相簿 ===
         const tutorialImagesDesktop = [
             "https://mitakuproductiondatabase.notion.site/image/attachment%3Af417ed85-171d-41e7-883c-31720bd2011e%3A%E6%8A%95%E5%BD%B1%E7%89%871.png?table=block&id=310ec1d7-4290-80cd-a74c-dd51b512925a&spaceId=0b9ae6ca-d241-44a9-a9e0-ded5a78f696c&width=1420&userId=&cache=v2.png", 
-            "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=1000&auto=format&fit=crop", 
-            "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1000&auto=format&fit=crop"  
+            "https://mitakuproductiondatabase.notion.site/image/attachment%3A7772f554-186a-48f4-bae9-405a6dd6d463%3A%E6%8A%95%E5%BD%B1%E7%89%872.png?table=block&id=310ec1d7-4290-8022-be00-e1bb4e950209&spaceId=0b9ae6ca-d241-44a9-a9e0-ded5a78f696c&width=1420&userId=&cache=v2.png", 
+            "https://mitakuproductiondatabase.notion.site/image/attachment%3A4de79045-f921-4aba-80ac-5a93c7a05c53%3A%E6%8A%95%E5%BD%B1%E7%89%873.png?table=block&id=310ec1d7-4290-80f7-b6b0-d7e7f18188d3&spaceId=0b9ae6ca-d241-44a9-a9e0-ded5a78f696c&width=1420&userId=&cache=v2.png",
+"https://mitakuproductiondatabase.notion.site/image/attachment%3A97686764-8ee2-47d0-a511-6db371960ca3%3A%E6%8A%95%E5%BD%B1%E7%89%874.png?table=block&id=310ec1d7-4290-802b-9a11-fb495f0651f4&spaceId=0b9ae6ca-d241-44a9-a9e0-ded5a78f696c&width=1420&userId=&cache=v2.png",
+"https://mitakuproductiondatabase.notion.site/image/attachment%3A8249c0b5-6a7e-4a00-a05c-0ab57028fd76%3A%E6%8A%95%E5%BD%B1%E7%89%875.png?table=block&id=310ec1d7-4290-80a7-b7af-e6b3e3bf1590&spaceId=0b9ae6ca-d241-44a9-a9e0-ded5a78f696c&width=1420&userId=&cache=v2.png",
+"https://mitakuproductiondatabase.notion.site/image/attachment%3A7ee54d5e-be7d-4ded-a548-4b081b5930a3%3A%E6%8A%95%E5%BD%B1%E7%89%876.png?table=block&id=310ec1d7-4290-8093-aae0-d76324a30697&spaceId=0b9ae6ca-d241-44a9-a9e0-ded5a78f696c&width=1420&userId=&cache=v2.png"			
         ];
 
         const tutorialImagesMobile = [
-            "https://i.imgur.com/ac6GcaS.png", 
-            "https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?q=80&w=800&auto=format&fit=crop"
+            "https://mitakuproductiondatabase.notion.site/image/attachment%3A64e87d44-877a-44cd-bfa4-1eb6384b8c9f%3A%E6%8A%95%E5%BD%B1%E7%89%871.png?table=block&id=310ec1d7-4290-8099-aeeb-f206dffec0f2&spaceId=0b9ae6ca-d241-44a9-a9e0-ded5a78f696c&width=640&userId=&cache=v2.png", 
+            "https://mitakuproductiondatabase.notion.site/image/attachment%3A02561520-841e-4bff-9591-370d96d810ef%3A%E6%8A%95%E5%BD%B1%E7%89%872.png?table=block&id=310ec1d7-4290-80c5-a643-c100810ce1d8&spaceId=0b9ae6ca-d241-44a9-a9e0-ded5a78f696c&width=640&userId=&cache=v2.png",
+			"https://mitakuproductiondatabase.notion.site/image/attachment%3A9557404e-d21e-43b2-83c2-f232a45ce654%3A%E6%8A%95%E5%BD%B1%E7%89%873.png?table=block&id=310ec1d7-4290-808f-b45e-ec45a5f0ef4a&spaceId=0b9ae6ca-d241-44a9-a9e0-ded5a78f696c&width=640&userId=&cache=v2.png",
+			"https://mitakuproductiondatabase.notion.site/image/attachment%3A2ad6641a-bf0b-40aa-b45c-03a3de213cc3%3A%E6%8A%95%E5%BD%B1%E7%89%874.png?table=block&id=310ec1d7-4290-8049-accb-e16062cce8d0&spaceId=0b9ae6ca-d241-44a9-a9e0-ded5a78f696c&width=640&userId=&cache=v2.png",
+			"https://mitakuproductiondatabase.notion.site/image/attachment%3Aea452561-16d2-437c-ab4a-d5f3f0035783%3A%E6%8A%95%E5%BD%B1%E7%89%875.png?table=block&id=310ec1d7-4290-80e3-895f-c02046762f56&spaceId=0b9ae6ca-d241-44a9-a9e0-ded5a78f696c&width=640&userId=&cache=v2.png",
+			"https://mitakuproductiondatabase.notion.site/image/attachment%3A73cd7c30-2cc7-4a69-b6de-85294b1ea164%3A%E6%8A%95%E5%BD%B1%E7%89%876.png?table=block&id=310ec1d7-4290-80cf-afbb-d95f7ab868b0&spaceId=0b9ae6ca-d241-44a9-a9e0-ded5a78f696c&width=640&userId=&cache=v2.png"
         ];
 
         let currentTutorialImages = [];
@@ -587,7 +594,7 @@
 
         function renderLibrary(filter = '') {
             const libUI = document.getElementById('library-list-ui'); libUI.innerHTML = ''; const filtered = allLibrarySongs.filter(s => s.name.toLowerCase().includes(filter) || (s.album||'').toLowerCase().includes(filter));
-            if(filtered.length===0) { libUI.innerHTML = '<div class="text-center text-zinc-500 py-10 text-xs">無結果</div>'; return; }
+            if(filtered.length===0) { libUI.innerHTML = '<div class="text-center text-zinc-500 py-10 text-xs">查無結果</div>'; return; }
             filtered.forEach(d => {
                 const btn = document.createElement('div'); btn.className = 'py-2 px-3 bg-zinc-800/50 rounded-lg cursor-pointer hover:bg-zinc-700 border border-transparent hover:border-zinc-600 transition-all flex justify-between items-center group gap-2 w-full';
                 btn.innerHTML = `<div class="flex-1 min-w-0 pr-2"><div class="font-bold text-xs text-zinc-200 truncate" title="${d.name}">${d.name}</div><div class="text-[10px] text-zinc-500 truncate mt-0.5" title="${d.album}">${d.album}</div></div><span class="text-green-500 font-bold opacity-0 group-hover:opacity-100 flex-shrink-0 px-2">+</span>`;
@@ -603,7 +610,7 @@
         window.toggleBulkModal = () => document.getElementById('bulk-modal').classList.toggle('hidden');
         document.getElementById('bulk-import-btn').onclick = () => { document.getElementById('bulk-input').value.split('\n').forEach(l => { const p=l.split(/[,\t]/); if(p[0]) { addSong(p[0].trim(), (p[1]||'').trim()); saveToCloud(p[0].trim(), (p[1]||'').trim()); } }); toggleBulkModal(); };
         document.getElementById('add-custom-btn').onclick = () => { const n = document.getElementById('custom-name'); const a = document.getElementById('custom-album'); if(n.value) { addSong(n.value, a.value); saveToCloud(n.value, a.value); n.value=''; a.value=''; } };
-        document.getElementById('clear-all-btn').onclick = () => { if(confirm('確定要清空海報上所有歌曲嗎?')) { posterContainer.innerHTML=''; syncOrderFromPoster(); } };
+        document.getElementById('clear-all-btn').onclick = () => { if(confirm('確定要清空海報上所有歌曲嗎？')) { posterContainer.innerHTML=''; syncOrderFromPoster(); } };
 
         document.getElementById('bg-upload').onchange = (e) => { const f = e.target.files[0]; if(f) { const r = new FileReader(); r.onload = (ev) => { document.getElementById('capture-zone').style.backgroundImage = `url(${ev.target.result})`; document.getElementById('capture-zone').style.color='white'; }; r.readAsDataURL(f); } };
 
