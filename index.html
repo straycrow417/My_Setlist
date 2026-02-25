@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>歌單海報產生器</title>
+    <title>歌單海報產生器 - Mitaku Production</title>
+<meta name="description" content="歌單海報產生器 - by Mitaku Production">
+<meta property="og:title" content="歌單海報產生器 - Mitaku Production">
+<meta property="og:description" content="輕鬆搜尋歌曲，上傳喜歡的底圖，一鍵匯出專屬於你的推坑歌單海報！">
+<meta property="og:image" content="https://mitakuproductiondatabase.notion.site/image/attachment%3A3483fa6e-68fa-4341-9fed-52fb43ea9423%3A%E9%A0%90%E8%A6%BD%E5%9C%96.png?table=block&id=312ec1d7-4290-8082-9027-c326a2e985af&spaceId=0b9ae6ca-d241-44a9-a9e0-ded5a78f696c&width=1420&userId=&cache=v2.png">
+<meta property="og:type" content="website">
+<link rel="icon" href="https://mitakuproductiondatabase.notion.site/image/https%3A%2F%2Fs3-us-west-2.amazonaws.com%2Fpublic.notion-static.com%2Fe2b15609-2c96-49a2-8011-ecb979030247%2F%25E9%25BA%25BB%25E6%25B2%25B9%25E7%2583%258F%25E9%25B4%25892.png?table=custom_emoji&id=311ec1d7-4290-8081-929a-007a419d7ae5&spaceId=0b9ae6ca-d241-44a9-a9e0-ded5a78f696c&width=160&userId=&cache=v2.png" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -112,8 +118,8 @@
                 <div id="capture-zone" class="poster-size shadow-2xl">
                     <div class="content-layer">
                         <div id="title-container" class="mb-3 flex-shrink-0">
-                            <div class="title-main">請在此輸入歌單標題</div>
-                            <div class="title-sub">換行以輸入副標題</div>
+                            <div class="title-main">動動手指，輕鬆將你喜愛的音樂打包帶走！</div>
+                            <div class="title-sub">專輯封面等版權屬原唱片公司及藝人所有，本工具僅供個人交流分享使用，請尊重智慧財產權</div>
                         </div>
                         <div id="playlist-items"></div>
                     </div>
@@ -124,7 +130,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="space-y-3">
                         <p class="text-[10px] text-zinc-400 font-bold uppercase tracking-widest">標題文字</p>
-                        <textarea id="nickname-input" rows="2" class="w-full bg-zinc-900/80 p-3 rounded-lg text-xs outline-none focus:ring-1 focus:ring-green-500 transition-all font-mono" placeholder="請在此輸入歌單標題，換行以輸入副標題">請在此輸入歌單標題&#10;換行以輸入副標題</textarea>
+                        <textarea id="nickname-input" rows="2" class="w-full bg-zinc-900/80 p-3 rounded-lg text-xs outline-none focus:ring-1 focus:ring-green-500 transition-all font-mono" placeholder="請在此輸入歌單標題，換行以輸入副標題">動動手指，輕鬆將你喜愛的音樂打包帶走！&#10;專輯封面等版權屬原唱片公司及藝人所有，本工具僅供個人交流分享使用，請尊重智慧財產權</textarea>
                         <div class="grid grid-cols-2 gap-2">
                             <button id="toggle-color" class="bg-zinc-600 hover:bg-zinc-500 py-2 rounded text-[10px] transition-colors">深色標題/淺色標題</button>
                             <button id="toggle-tag-color" class="bg-zinc-600 hover:bg-zinc-500 py-2 rounded text-[10px] transition-colors">深色歌單/淺色歌單</button>
